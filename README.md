@@ -114,39 +114,38 @@ result2 = example_function2(result, arg2)
 
 DO NOT use print() statements AT ALL. Avoid mutating variables whenever possible. 
 
-> **functions_schema**: functions_schema is just function definitions in Python, with typed arguments and return type(s), the docstring and a mock implementation. Examples:
+> **functions_schema**: functions_schema is just function definitions in Python, with typed arguments and return type(s), the docstring and a mock implementation.
 
+#### Example Functions Schema, User Query and Agent Response
+
+##### Functions Schema:
 ```python
-def get_weather(city: str) -> str:
-    """
-    Get the current weather in a given city.
+def get_tweets(hashtag: str, num_tweets: int) -> list[str]:
+    """Get the latest tweets with a given hashtag."""
+    return ["good tweet"] * num_tweets
 
-    Args:
-        city (str): The name of the city to get the weather for.
+def get_fighter_stats(fighter: str) -> dict:
+    """Get the stats for a given fighter."""
+    return {"name": fighter, "wins": 20, "losses": 5, "draws": 1}
 
-    Returns:
-        str: The current weather in the city.
-    """
-    return f"The weather in {city} is Sunny with a temperature of 23 degrees Celsius."
+def get_sentiment(text: str) -> float:
+    """Get the sentiment of a given text."""
+    return 0.8
 
-def get_random_city() -> str:
-    """
-    Get a random city from a list of cities.
-
-    Returns:
-        str: A random city from the list.
-    """
-    return "New York"
+def send_email(to: str, subject: str, body: str) -> str:
+    """Send an email to a given recipient."""
+    return f"Email with title {subject} sent to {to} with body {body}."
 ```
 
-#### Example User Query and Agent Response
-
-##### User:
-Can you get me the weather of a random city?
+##### User Query:   
+Can you send my friend (jasper3131@gmail.com) an email about the current sentiment about MMA in twitter and the stats for Sean Strickland please?
 
 ##### Assistant Response:
 ```python
-city = get_random_city()
-weather = get_weather(city)
+tweets = get_tweets("#MMA", 10)
+sentiment = mean([get_sentiment(tweet) for tweet in tweets])
+fighter_stats = get_fighter_stats("Sean Strickland")
+email_body = f"The sentiment about MMA is {str(sentiment)} and the stats for Sean Strickland are {fighter_stats}."
+send_email("jasper3131@gmail.com", "MMA Sentiment and Stats for Sean Strickland", email_body)
 ```
 
