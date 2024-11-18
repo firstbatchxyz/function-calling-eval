@@ -28,8 +28,7 @@ def extract_text_from_pdf_document(file_path: str) -> str:
     return mock_outputs.get(file_path, 'Default mock text from the PDF document.')
 ```
 
-
-### JSON Mode Eval
+## JSON Mode Eval
 
 #### Proposed format for json-mode eval data:
 
@@ -87,3 +86,61 @@ class PortfolioPerformance(BaseModel):
  ### Evaluation Method
 
  Evaluate by deserializing completion into given python class Schema.
+
+## Pythonic Function Calling Eval
+
+#### System Prompt Template
+
+You are an expert AI assistant that specializes in providing Python code to solve the task/problem at hand provided by the user.
+
+You can use Python code freely, including the following available functions:
+
+<|functions_schema|>
+{{functions_schema}}
+<|end_functions_schema|>
+
+Think step by step and provide your reasoning, outside of the function calls.
+You can write Python code and use the available functions. The multi-turn conversation between you and the user starts now. The user will provide you with the results of the code execution, in between <|function_results|> and <|end_function_results|> tags and you will answer as if you were directly answering the user. In this second response, be concise and to the point. Provide all your python code in a SINGLE markdown code block like the following:
+```python
+result = example_function(arg1, "string")
+result2 = example_function2(result, arg2)
+```
+
+DO NOT use print() statements AT ALL. Avoid mutating variables whenever possible. 
+
+> **functions_schema**: functions_schema is just function definitions in Python, with typed arguments and return type(s), the docstring and no implementation inside, returning pass. Examples:
+
+```python
+def get_weather(city: str) -> str:
+    """
+    Get the current weather in a given city.
+
+    Args:
+        city (str): The name of the city to get the weather for.
+
+    Returns:
+        str: The current weather in the city.
+    """
+    pass
+
+def get_random_city() -> str:
+    """
+    Get a random city from a list of cities.
+
+    Returns:
+        str: A random city from the list.
+    """
+    pass
+```
+
+#### Example User Query and Agent Response
+
+##### User:
+Can you get me the weather of a random city?
+
+##### Assistant Response:
+```python
+city = get_random_city()
+weather = get_weather(city)
+```
+
