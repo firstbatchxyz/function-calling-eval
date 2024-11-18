@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "function-calling-eval"
+version = "0.1.0"
+description = "This repository is designed for evaluating pythonic function calling abilities."
+authors = ["andthattoo <omer@firstbatch.xyz>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+transformers = "^4.46.2"
+datasets = "^3.1.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
