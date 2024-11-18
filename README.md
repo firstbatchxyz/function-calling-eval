@@ -143,7 +143,7 @@ Can you send my friend (jasper3131@gmail.com) an email about the current sentime
 ##### Assistant Response:
 ```python
 tweets = get_tweets("#MMA", 10)
-sentiment = mean([get_sentiment(tweet) for tweet in tweets])
+sentiment = sum([get_sentiment(tweet) for tweet in tweets]) / len(tweets)
 fighter_stats = get_fighter_stats("Sean Strickland")
 email_body = f"The sentiment about MMA is {str(sentiment)} and the stats for Sean Strickland are {fighter_stats}."
 send_email("jasper3131@gmail.com", "MMA Sentiment and Stats for Sean Strickland", email_body)
