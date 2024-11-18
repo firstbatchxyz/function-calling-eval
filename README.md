@@ -6,7 +6,6 @@ Designed by Dria.
 
 
 
-
 ```python
 
 def extract_text_from_pdf_document(file_path: str) -> str:
