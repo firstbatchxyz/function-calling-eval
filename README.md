@@ -89,6 +89,11 @@ class PortfolioPerformance(BaseModel):
 
 ## Pythonic Function Calling Eval
 
+#### Proposed format for pythonic function calling eval data:
+
+|  Prompt  | Completion | Functions Schema | Needs Judge |
+|----------|------------|------------------|-------------|
+
 #### System Prompt Template
 
 You are an expert AI assistant that specializes in providing Python code to solve the task/problem at hand provided by the user.
@@ -101,6 +106,7 @@ You can use Python code freely, including the following available functions:
 
 Think step by step and provide your reasoning, outside of the function calls.
 You can write Python code and use the available functions. The multi-turn conversation between you and the user starts now. The user will provide you with the results of the code execution, in between <|function_results|> and <|end_function_results|> tags and you will answer as if you were directly answering the user. In this second response, be concise and to the point. Provide all your python code in a SINGLE markdown code block like the following:
+
 ```python
 result = example_function(arg1, "string")
 result2 = example_function2(result, arg2)
@@ -108,7 +114,7 @@ result2 = example_function2(result, arg2)
 
 DO NOT use print() statements AT ALL. Avoid mutating variables whenever possible. 
 
-> **functions_schema**: functions_schema is just function definitions in Python, with typed arguments and return type(s), the docstring and no implementation inside, returning pass. Examples:
+> **functions_schema**: functions_schema is just function definitions in Python, with typed arguments and return type(s), the docstring and a mock implementation. Examples:
 
 ```python
 def get_weather(city: str) -> str:
@@ -121,7 +127,7 @@ def get_weather(city: str) -> str:
     Returns:
         str: The current weather in the city.
     """
-    pass
+    return f"The weather in {city} is Sunny with a temperature of 23 degrees Celsius."
 
 def get_random_city() -> str:
     """
@@ -130,7 +136,7 @@ def get_random_city() -> str:
     Returns:
         str: A random city from the list.
     """
-    pass
+    return "New York"
 ```
 
 #### Example User Query and Agent Response
