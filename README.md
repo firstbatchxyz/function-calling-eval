@@ -124,9 +124,66 @@ DO NOT use print() statements AT ALL. Avoid mutating variables whenever possible
 
 > **functions_schema**: functions_schema is just function definitions in Python, with typed arguments and return type(s), the docstring and a mock implementation.
 
-#### Example Functions Schema, User Query and Agent Response
+#### Example Row
+
+##### Needs Judge:
+True
+
+##### Function Schema JSON:
+```json
+{
+  "functions": [
+    {
+      "name": "get_tweets",
+      "parameters": {
+        "hashtag": {"type": "string"},
+        "num_tweets": {"type": "integer"}
+      }
+    },
+    {
+      "name": "get_fighter_stats", 
+      "parameters": {
+        "fighter": {"type": "string"}
+      }
+    },
+    {
+      "name": "get_sentiment",
+      "parameters": {
+        "text": {"type": "string"}
+      }
+    },
+    {
+      "name": "send_email",
+      "parameters": {
+        "to": {"type": "string"},
+        "subject": {"type": "string"},
+        "body": {"type": "string"}
+      }
+    }
+  ]
+}
+```
 
 ##### Functions Schema:
+```python
+def get_tweets(hashtag: str, num_tweets: int) -> list[str]:
+    """Get the latest tweets with a given hashtag."""
+    pass
+
+def get_fighter_stats(fighter: str) -> dict:
+    """Get the stats for a given fighter."""
+    pass
+
+def get_sentiment(text: str) -> float:
+    """Get the sentiment of a given text."""
+    pass
+
+def send_email(to: str, subject: str, body: str) -> str:
+    """Send an email to a given recipient."""
+    pass
+```
+
+##### Mock Function:
 ```python
 def get_tweets(hashtag: str, num_tweets: int) -> list[str]:
     """Get the latest tweets with a given hashtag."""
@@ -145,10 +202,7 @@ def send_email(to: str, subject: str, body: str) -> str:
     return f"Email with title {subject} sent to {to} with body {body}."
 ```
 
-##### User Query:   
-Can you send my friend (jasper3131@gmail.com) an email about the current sentiment about MMA in twitter and the stats for Sean Strickland please?
-
-##### Assistant Response:
+##### Expected Output:
 ```python
 tweets = get_tweets("#MMA", 10)
 sentiment = sum([get_sentiment(tweet) for tweet in tweets]) / len(tweets)
@@ -157,3 +211,17 @@ email_body = f"The sentiment about MMA is {str(sentiment)} and the stats for Sea
 send_email("jasper3131@gmail.com", "MMA Sentiment and Stats for Sean Strickland", email_body)
 ```
 
+##### Completion:
+```python
+tweets = get_tweets("#MMA", 10)
+sentiment_total = sum([get_sentiment(tweet) for tweet in tweets])
+sentiment = sentiment_total / len(tweets)
+fighter_stats = get_fighter_stats("Sean Strickland")
+email_body = f"The sentiment about MMA is {str(sentiment)} and the stats for Sean Strickland are {fighter_stats}."
+send_email("jasper3131@gmail.com", "MMA Sentiment and Stats for Sean Strickland", email_body)
+```
+
+##### User Query:   
+Can you send my friend (jasper3131@gmail.com) an email about the current sentiment about MMA in twitter and the stats for Sean Strickland please?
+
+##### Function Results:
