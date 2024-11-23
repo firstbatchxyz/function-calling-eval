@@ -91,8 +91,16 @@ class PortfolioPerformance(BaseModel):
 
 #### Proposed format for pythonic function calling eval data:
 
-|  Prompt  | Completion | Functions Schema | Needs Judge |
-|----------|------------|------------------|-------------|
+| Field | Description | Example |
+|-------|-------------|---------|
+| needs_judge | Whether human evaluation is needed | true/false |
+| function_schema_json | JSON representation of available functions | {"name": "get_tweets", "parameters": {...}} |
+| function_schema_python | Python function definitions with types | def get_tweets(hashtag: str) -> list[str] |
+| expected_output | Expected output from function calls | ["tweet1", "tweet2"] |
+| mock_function | Mock implementation returning expected output | def mock_get_tweets(): return ["tweet1"] |
+| completion | The assistant's response/code | result = get_tweets("#AI") |
+| user_query | The user's original request | "Get latest AI tweets" |
+| function_results | Results from executing the functions | <function_results>tweets = ["tweet1", "tweet2"]</function_results> |
 
 #### System Prompt Template
 
