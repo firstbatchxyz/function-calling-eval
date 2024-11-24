@@ -96,8 +96,7 @@ class PortfolioPerformance(BaseModel):
 | needs_judge | Whether human evaluation is needed | true/false |
 | function_schema_json | JSON representation of available functions | {"name": "get_tweets", "parameters": {...}} |
 | function_schema_python | Python function definitions with types | def get_tweets(hashtag: str) -> list[str] |
-| expected_output | Expected output from function calls | ["tweet1", "tweet2"] |
-| mock_function | Mock implementation returning expected output | def mock_get_tweets(): return ["tweet1"] |
+| mock_functions | Mock implementation returning expected output | def mock_get_tweets(): return ["tweet1"] |
 | completion | The assistant's response/code | result = get_tweets("#AI") |
 | user_query | The user's original request | "Get latest AI tweets" |
 | function_results | Results from executing the functions | <function_results>tweets = ["tweet1", "tweet2"]</function_results> |
@@ -164,7 +163,7 @@ True
 }
 ```
 
-##### Functions Schema:
+##### Functions Schema Python:
 ```python
 def get_tweets(hashtag: str, num_tweets: int) -> list[str]:
     """Get the latest tweets with a given hashtag."""
@@ -183,7 +182,7 @@ def send_email(to: str, subject: str, body: str) -> str:
     pass
 ```
 
-##### Mock Function:
+##### Mock Functions:
 ```python
 def get_tweets(hashtag: str, num_tweets: int) -> list[str]:
     """Get the latest tweets with a given hashtag."""
@@ -202,20 +201,10 @@ def send_email(to: str, subject: str, body: str) -> str:
     return f"Email with title {subject} sent to {to} with body {body}."
 ```
 
-##### Expected Output:
-```python
-tweets = get_tweets("#MMA", 10)
-sentiment = sum([get_sentiment(tweet) for tweet in tweets]) / len(tweets)
-fighter_stats = get_fighter_stats("Sean Strickland")
-email_body = f"The sentiment about MMA is {str(sentiment)} and the stats for Sean Strickland are {fighter_stats}."
-send_email("jasper3131@gmail.com", "MMA Sentiment and Stats for Sean Strickland", email_body)
-```
-
 ##### Completion:
 ```python
 tweets = get_tweets("#MMA", 10)
-sentiment_total = sum([get_sentiment(tweet) for tweet in tweets])
-sentiment = sentiment_total / len(tweets)
+sentiment = sum([get_sentiment(tweet) for tweet in tweets]) / len(tweets)
 fighter_stats = get_fighter_stats("Sean Strickland")
 email_body = f"The sentiment about MMA is {str(sentiment)} and the stats for Sean Strickland are {fighter_stats}."
 send_email("jasper3131@gmail.com", "MMA Sentiment and Stats for Sean Strickland", email_body)
@@ -225,3 +214,25 @@ send_email("jasper3131@gmail.com", "MMA Sentiment and Stats for Sean Strickland"
 Can you send my friend (jasper3131@gmail.com) an email about the current sentiment about MMA in twitter and the stats for Sean Strickland please?
 
 ##### Function Results:
+```json
+{
+  'function_results': {
+    'get_tweets': 'tweets',
+    'get_sentiment': [0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8],
+    'get_fighter_stats': 'fighter_stats',
+    'send_email': ["Email with title MMA Sentiment and Stats for Sean Strickland sent to jasper3131@gmail.com with body The sentiment about MMA is 0.7999999999999999 and the stats for Sean Strickland are {'name': 'Sean Strickland', 'wins': 20, 'losses': 5, 'draws': 1}.."]
+  },
+  'variables': {
+    'tweets': ['good tweet', 'good tweet', 'good tweet', 'good tweet', 'good tweet', 'good tweet', 'good tweet', 'good tweet', 'good tweet', 'good tweet'],
+    'sentiment': 0.7999999999999999,
+    'fighter_stats': {
+      'name': 'Sean Strickland',
+      'wins': 20,
+      'losses': 5,
+      'draws': 1
+    },
+    'email_body': "The sentiment about MMA is 0.7999999999999999 and the stats for Sean Strickland are {'name': 'Sean Strickland', 'wins': 20, 'losses': 5, 'draws': 1}."
+  },
+  'errors': []
+}
+```
