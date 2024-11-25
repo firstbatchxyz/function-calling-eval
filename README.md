@@ -93,13 +93,13 @@ class PortfolioPerformance(BaseModel):
 
 | Field | Description | Example |
 |-------|-------------|---------|
-| needs_judge | Whether human evaluation is needed | true/false |
+| difficulty | The difficulty of the task | "easy", "hard" |
 | function_schema_json | JSON representation of available functions | {"name": "get_tweets", "parameters": {...}} |
 | function_schema_python | Python function definitions with types | def get_tweets(hashtag: str) -> list[str] |
 | mock_functions | Mock implementation returning expected output | def mock_get_tweets(): return ["tweet1"] |
 | completion | The assistant's response/code | result = get_tweets("#AI") |
 | user_query | The user's original request | "Get latest AI tweets" |
-| function_results | Results from executing the functions | <function_results>tweets = ["tweet1", "tweet2"]</function_results> |
+| values_list | List of values to check for in the function results | [0.7999999999999999, {"name": "Islam Makhachev", "wins": 17, "losses": 1, "draws": 0}] |
 
 #### System Prompt Template
 
@@ -125,8 +125,8 @@ DO NOT use print() statements AT ALL. Avoid mutating variables whenever possible
 
 #### Example Row
 
-##### Needs Judge:
-True
+##### Difficulty:
+easy
 
 ##### Function Schema JSON:
 ```json
@@ -150,14 +150,6 @@ True
       "parameters": {
         "text": {"type": "string"}
       }
-    },
-    {
-      "name": "send_email",
-      "parameters": {
-        "to": {"type": "string"},
-        "subject": {"type": "string"},
-        "body": {"type": "string"}
-      }
     }
   ]
 }
@@ -169,16 +161,12 @@ def get_tweets(hashtag: str, num_tweets: int) -> list[str]:
     """Get the latest tweets with a given hashtag."""
     pass
 
-def get_fighter_stats(fighter: str) -> dict:
-    """Get the stats for a given fighter."""
+def get_fighter_record(fighter: str) -> dict:
+    """Get the stats for a given fighter, namely wins, losses and draws."""
     pass
 
 def get_sentiment(text: str) -> float:
     """Get the sentiment of a given text."""
-    pass
-
-def send_email(to: str, subject: str, body: str) -> str:
-    """Send an email to a given recipient."""
     pass
 ```
 
@@ -188,51 +176,43 @@ def get_tweets(hashtag: str, num_tweets: int) -> list[str]:
     """Get the latest tweets with a given hashtag."""
     return ["good tweet"] * num_tweets
 
-def get_fighter_stats(fighter: str) -> dict:
-    """Get the stats for a given fighter."""
-    return {"name": fighter, "wins": 20, "losses": 5, "draws": 1}
+def get_fighter_record(fighter: str) -> dict:
+    """Get the stats for a given fighter, namely wins, losses and draws."""
+    return {"name": fighter, "wins": 17, "losses": 1, "draws": 0}
 
 def get_sentiment(text: str) -> float:
     """Get the sentiment of a given text."""
     return 0.8
-
-def send_email(to: str, subject: str, body: str) -> str:
-    """Send an email to a given recipient."""
-    return f"Email with title {subject} sent to {to} with body {body}."
-```
-
-##### Completion:
-```python
-tweets = get_tweets("#MMA", 10)
-sentiment = sum([get_sentiment(tweet) for tweet in tweets]) / len(tweets)
-fighter_stats = get_fighter_stats("Sean Strickland")
-email_body = f"The sentiment about MMA is {str(sentiment)} and the stats for Sean Strickland are {fighter_stats}."
-send_email("jasper3131@gmail.com", "MMA Sentiment and Stats for Sean Strickland", email_body)
 ```
 
 ##### User Query:   
-Can you send my friend (jasper3131@gmail.com) an email about the current sentiment about MMA in twitter and the stats for Sean Strickland please?
+What is the current sentiment about Islam Makhachev and his current record?
 
-##### Function Results:
+##### Completion:
+To determine the current sentiment about Islam Makhachev and his record, we need to:
+
+1. Get the latest tweets mentioning him.
+2. Analyze the sentiment of these tweets.
+3. Retrieve his current fighting record.
+
+Let's start by getting the latest tweets with the hashtag `#IslamMakhachev` and analyzing their sentiment.
+
+```python
+tweets = get_tweets("#IslamMakhachev", 10)
+sentiment_scores = [get_sentiment(tweet) for tweet in tweets]
+average_sentiment = sum(sentiment_scores) / len(sentiment_scores) if sentiment_scores else 0
+fighter_record = get_fighter_record("Islam Makhachev")
+```
+
+##### Values List:
 ```json
-{
-  'function_results': {
-    'get_tweets': 'tweets',
-    'get_sentiment': [0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8],
-    'get_fighter_stats': 'fighter_stats',
-    'send_email': ["Email with title MMA Sentiment and Stats for Sean Strickland sent to jasper3131@gmail.com with body The sentiment about MMA is 0.7999999999999999 and the stats for Sean Strickland are {'name': 'Sean Strickland', 'wins': 20, 'losses': 5, 'draws': 1}.."]
-  },
-  'variables': {
-    'tweets': ['good tweet', 'good tweet', 'good tweet', 'good tweet', 'good tweet', 'good tweet', 'good tweet', 'good tweet', 'good tweet', 'good tweet'],
-    'sentiment': 0.7999999999999999,
-    'fighter_stats': {
-      'name': 'Sean Strickland',
-      'wins': 20,
-      'losses': 5,
-      'draws': 1
-    },
-    'email_body': "The sentiment about MMA is 0.7999999999999999 and the stats for Sean Strickland are {'name': 'Sean Strickland', 'wins': 20, 'losses': 5, 'draws': 1}."
-  },
-  'errors': []
-}
+[
+    0.7999999999999999,
+    {
+        "name": "Islam Makhachev",
+        "wins": 17,
+        "losses": 1,
+        "draws": 0
+    }
+]
 ```
