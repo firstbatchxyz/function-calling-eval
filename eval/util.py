@@ -1,6 +1,6 @@
 from typing import List
 import json
-
+import re
 from eval.schemas import PythonicRow
 
 def load_pythonic_jsonl(file_path: str) -> List[PythonicRow]:
@@ -25,3 +25,16 @@ def load_pythonic_jsonl(file_path: str) -> List[PythonicRow]:
         return rows
     except Exception as e:
         raise Exception(f"Error loading pythonic.jsonl file: {str(e)}")
+
+def extract_codeblocks(text: str) -> List[str]:
+    """
+    Extract code blocks from a given text and merge them into a single string.
+
+    Args:
+        text: The text to extract code blocks from
+
+    Returns:
+        List of code blocks
+    """
+    code_blocks = re.findall(r'```python(.*?)```', text, re.DOTALL)
+    return "\n".join(code_blocks) if code_blocks else ""
