@@ -99,7 +99,7 @@ class PortfolioPerformance(BaseModel):
 | mock_functions | Mock implementation returning expected output | def mock_get_tweets(): return ["tweet1"] |
 | completion | The assistant's response/code | result = get_tweets("#AI") |
 | user_query | The user's original request | "Get latest AI tweets" |
-| values_list | List of values to check for in the function results | [0.7999999999999999, {"name": "Islam Makhachev", "wins": 17, "losses": 1, "draws": 0}] |
+| checklist | List of called functions and values to check for in the function results | { "functions": [get_tweets, get_fighter_record, get_sentiment], "values": [0.7999999999999999, {"name": "Islam Makhachev", "wins": 17, "losses": 1, "draws": 0}] } |
 
 #### System Prompt Template
 
@@ -206,7 +206,9 @@ fighter_record = get_fighter_record("Islam Makhachev")
 
 ##### Values List:
 ```json
-[
+{
+  "functions": ["get_tweets", "get_fighter_record", "get_sentiment"],
+  "values": [
     0.7999999999999999,
     {
         "name": "Islam Makhachev",
@@ -214,5 +216,6 @@ fighter_record = get_fighter_record("Islam Makhachev")
         "losses": 1,
         "draws": 0
     }
-]
+  ]
+}
 ```
