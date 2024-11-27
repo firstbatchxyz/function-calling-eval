@@ -32,6 +32,18 @@ class FunctionResults(BaseModel):
             bool: True if all the values are found in the variables, False otherwise
         """
         return all(value in self.variables.values() for value in values_list)
+    
+    def has_functions(self, functions_list: List[str]) -> bool:
+        """
+        Check if all the functions in the list exist as keys in the function_results.
+
+        Args:
+            functions_list: The functions to search for
+
+        Returns:
+            bool: True if all the functions are found, False otherwise
+        """
+        return all(function in self.function_results.keys() for function in functions_list)
 
 class PythonicRow(BaseModel):
     """
