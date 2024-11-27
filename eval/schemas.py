@@ -1,4 +1,5 @@
 from typing import List, Dict, Any, Optional
+from enum import Enum
 
 from pydantic import BaseModel
 
@@ -44,6 +45,11 @@ class FunctionResults(BaseModel):
             bool: True if all the functions are found, False otherwise
         """
         return all(function in self.function_results.keys() for function in functions_list)
+    
+class Checklist(BaseModel):
+    """Checklist for evaluating function calling."""
+    functions: List[str]
+    values: List[Any]
 
 class PythonicRow(BaseModel):
     """
@@ -64,4 +70,9 @@ class PythonicRow(BaseModel):
     mock_functions: str
     completion: str
     user_query: str
-    function_results: Optional[FunctionResults] = None
+    checklist: Checklist
+    
+class EvalMode(str, Enum):
+    """Evaluation mode for function calling."""
+    PYTHONIC = "pythonic"
+    JSON = "json"
