@@ -1,11 +1,55 @@
 from typing import List, Callable, Dict, Any
+import ast
+from types import FunctionType
+
+from eval.schemas import FunctionResults
+
+def import_functions(mock_functions: str) -> List[Callable]:
+    """
+    Import mock functions from a string containing function definitions and return them as callable functions.
+    
+    Args:
+        mock_functions: String containing Python function definitions
+        
+    Returns:
+        List of callable function objects
+    
+    Raises:
+        SyntaxError: If the function definitions contain invalid Python syntax
+        ValueError: If the string doesn't contain valid function definitions
+    """
+    # Parse the Python code into an AST
+    try:
+        tree = ast.parse(mock_functions)
+    except SyntaxError as e:
+        raise SyntaxError(f"Invalid Python syntax in mock functions: {str(e)}")
+    
+    # Create a new namespace for the functions
+    namespace = {}
+    
+    # Execute the code in the new namespace
+    try:
+        exec(mock_functions, namespace)
+    except Exception as e:
+        raise ValueError(f"Failed to execute mock functions: {str(e)}")
+    
+    # Extract only the functions from the namespace
+    functions = []
+    for _, obj in namespace.items():
+        if isinstance(obj, FunctionType):
+            functions.append(obj)
+            
+    if not functions:
+        raise ValueError("No functions found in the provided mock functions string")
+        
+    return functions
 
 def execute_python_code(
         code: str, 
         functions: List[Callable] = [],
         context_variables: Dict[str, Any] = {},
         safe: bool = False
-    ) -> Dict[str, Any]:
+    ) -> FunctionResults:
     """
     Execute Python code with given functions and context variables,
     and return the results of function calls and variables defined in the code.
@@ -76,8 +120,8 @@ def execute_python_code(
                     break
     
     # Return function results, variables, and any errors
-    return {
-        'function_results': call_results, 
-        'variables': variables, 
-        'errors': errors
-    }
+    return FunctionResults(
+        function_results=call_results, 
+        variables=variables, 
+        errors=errors
+    )
