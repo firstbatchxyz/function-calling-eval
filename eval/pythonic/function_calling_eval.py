@@ -5,12 +5,13 @@ from eval.pythonic.engine import import_functions, execute_python_code
 from eval.model import get_completion
 from eval.settings import PYTHONIC_DATA_PATH, PYTHONIC_SYSTEM_PROMPT_PATH
 
-def evaluate_model(model_name: str, data_path: str = PYTHONIC_DATA_PATH) -> Dict[str, Any]:
+def evaluate_model(model_name: str, provider: str, data_path: str = PYTHONIC_DATA_PATH) -> Dict[str, Any]:
     """
     Evaluate a model's function calling capabilities using the pythonic.jsonl dataset.
     
     Args:
         model_name: Name of the model to evaluate
+        provider: Provider to use
         data_path: Path to the pythonic.jsonl file
         
     Returns:
@@ -42,8 +43,13 @@ def evaluate_model(model_name: str, data_path: str = PYTHONIC_DATA_PATH) -> Dict
             inserted_system_prompt = insert_functions_schema(system_prompt, row.function_schema_python)
             
             # Get completion
-            completion = get_completion(model_name, inserted_system_prompt, row.user_query)
-            
+            completion = get_completion(
+                model_name=model_name,
+                provider=provider,
+                system_prompt=inserted_system_prompt,
+                user_query=row.user_query
+            )
+
             # Extract code from completion if needed
             code = extract_codeblocks(completion) if "```" in completion else completion
             

@@ -1,23 +1,43 @@
-MOCK_COMPLETION = """
-tweets = get_tweets("#IslamMakhachev", 10)
-sentiment_scores = [get_sentiment(tweet) for tweet in tweets]
-average_sentiment = sum(sentiment_scores) / len(sentiment_scores) if sentiment_scores else 0
-fighter_record = get_fighter_record("Islam Makhachev")
-"""
+from openai import OpenAI
 
-def get_completion(model_name: str, system_prompt: str, user_query: str) -> str:
+from eval.settings import PROVIDER_URLS
+
+# Initialize OpenAI clients for each provider
+CLIENTS = {}
+for provider, (url, api_key) in PROVIDER_URLS.items():
+    CLIENTS[provider] = OpenAI(
+        api_key=api_key,
+        base_url=url
+    )
+
+def get_completion(model_name: str, provider: str, system_prompt: str, user_query: str) -> str:
     """
-    Generate a completion for the given system prompt and user query.
+    Get a completion from a model for a given provider.
 
     Args:
-        model_name: The name of the LLM model to use.
-        system_prompt: The prompt provided by the system.
-        user_query: The query provided by the user.
+        model_name: The name of the model to use
+        provider: The provider to use
+        system_prompt: The system prompt to use
+        user_query: The user query to use
 
     Returns:
-        The LLM completion for the given system prompt and user query.
+        The completion from the model
     """
-    # Mock value for completion
-    # TODO: Implement actual completion
-    return MOCK_COMPLETION
+    client = CLIENTS.get(provider)
+    if not client:
+        raise ValueError(f"Provider '{provider}' not recognized.")
 
+    # Create the messages for the chat completion
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_query}
+    ]
+
+    # Make the API call to get the completion
+    response = client.chat.completions.create(
+        model=model_name,
+        messages=messages
+    )
+
+    # Extract and return the assistant's reply
+    return response.choices[0].message.content

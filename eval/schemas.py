@@ -1,7 +1,9 @@
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 from enum import Enum
 
 from pydantic import BaseModel
+
+from eval.settings import FLOAT_TOLERANCE
 
 class FunctionParameter(BaseModel):
     """Represents a parameter for a function with its type."""
@@ -24,15 +26,25 @@ class FunctionResults(BaseModel):
 
     def has_values(self, values_list: List[Any]) -> bool:
         """
-        Check if all the values in the list exist in the variables.
+        Check if all the values in the list exist in the variables, with a tolerance threshold for floats.
 
         Args:
             values_list: The values to search for
+            tolerance: The tolerance threshold for floating point comparisons (default: 1e-6)
 
         Returns:
             bool: True if all the values are found in the variables, False otherwise
         """
-        return all(value in self.variables.values() for value in values_list)
+        def values_match(value1: Any, value2: Any) -> bool:
+            """Check if two values match, considering tolerance for floats."""
+            if isinstance(value1, float) and isinstance(value2, float):
+                return abs(value1 - value2) <= FLOAT_TOLERANCE
+            return value1 == value2
+
+        return all(
+            any(values_match(value, var_value) for var_value in self.variables.values())
+            for value in values_list
+        )
     
     def has_functions(self, functions_list: List[str]) -> bool:
         """
