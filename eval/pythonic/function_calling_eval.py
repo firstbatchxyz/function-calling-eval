@@ -1,10 +1,11 @@
-from typing import Dict, Any, List
+from typing import Dict, Any
 
 from eval.util import load_pythonic_jsonl, extract_codeblocks
 from eval.pythonic.engine import import_functions, execute_python_code
 from eval.model import get_completion
+from eval.settings import PYTHONIC_DATA_PATH
 
-def evaluate_model(model_name: str, data_path: str = "data/pythonic.jsonl") -> Dict[str, Any]:
+def evaluate_model(model_name: str, data_path: str = PYTHONIC_DATA_PATH) -> Dict[str, Any]:
     """
     Evaluate a model's function calling capabilities using the pythonic.jsonl dataset.
     
@@ -53,6 +54,7 @@ def evaluate_model(model_name: str, data_path: str = "data/pythonic.jsonl") -> D
     
     # Calculate metrics
     overall_accuracy = correct / total if total > 0 else 0
+    overall_accuracy = round(overall_accuracy * 100, 2)
     
     return {
         "total_examples": total,
