@@ -101,28 +101,6 @@ class PortfolioPerformance(BaseModel):
 | user_query | The user's original request | "Get latest AI tweets" |
 | checklist | List of called functions and values to check for in the function results | { "functions": [get_tweets, get_fighter_record, get_sentiment], "values": [0.7999999999999999, {"name": "Islam Makhachev", "wins": 17, "losses": 1, "draws": 0}] } |
 
-#### System Prompt Template
-
-You are an expert AI assistant that specializes in providing Python code to solve the task/problem at hand provided by the user.
-
-You can use Python code freely, including the following available functions:
-
-<|functions_schema|>
-{{functions_schema}}
-<|end_functions_schema|>
-
-Think step by step and provide your reasoning, outside of the function calls.
-You can write Python code and use the available functions. The multi-turn conversation between you and the user starts now. The user will provide you with the results of the code execution, in between <|function_results|> and <|end_function_results|> tags and you will answer as if you were directly answering the user. In this second response, be concise and to the point. Provide all your python code in a SINGLE markdown code block like the following:
-
-```python
-result = example_function(arg1, "string")
-result2 = example_function2(result, arg2)
-```
-
-DO NOT use print() statements AT ALL. Avoid mutating variables whenever possible. 
-
-> **functions_schema**: functions_schema is just function definitions in Python, with typed arguments and return type(s), the docstring and a mock implementation.
-
 #### Example Row
 
 ##### Difficulty:

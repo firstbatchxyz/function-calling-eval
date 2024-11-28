@@ -1,9 +1,9 @@
 from typing import Dict, Any
 
-from eval.util import load_pythonic_jsonl, extract_codeblocks
+from eval.util import load_pythonic_jsonl, extract_codeblocks, load_system_prompt, insert_functions_schema
 from eval.pythonic.engine import import_functions, execute_python_code
 from eval.model import get_completion
-from eval.settings import PYTHONIC_DATA_PATH
+from eval.settings import PYTHONIC_DATA_PATH, PYTHONIC_SYSTEM_PROMPT_PATH
 
 def evaluate_model(model_name: str, data_path: str = PYTHONIC_DATA_PATH) -> Dict[str, Any]:
     """
@@ -29,15 +29,20 @@ def evaluate_model(model_name: str, data_path: str = PYTHONIC_DATA_PATH) -> Dict
     correct = 0
     errors = []
     
+    # Load system prompt
+    system_prompt = load_system_prompt(PYTHONIC_SYSTEM_PROMPT_PATH)
+    
     # Evaluate each example
     for row in rows:
         try:
             # Import mock functions
             functions = import_functions(row.mock_functions)
+
+            # Insert functions schema into system prompt
+            inserted_system_prompt = insert_functions_schema(system_prompt, row.function_schema_python)
             
-            # TODO: In reality, you would get the completion from the model here
-            # For now, we'll use the completion from the jsonl file
-            completion = get_completion(model_name, "", row.user_query)
+            # Get completion
+            completion = get_completion(model_name, inserted_system_prompt, row.user_query)
             
             # Extract code from completion if needed
             code = extract_codeblocks(completion) if "```" in completion else completion

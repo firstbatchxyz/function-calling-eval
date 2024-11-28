@@ -38,3 +38,32 @@ def extract_codeblocks(text: str) -> List[str]:
     """
     code_blocks = re.findall(r'```python(.*?)```', text, re.DOTALL)
     return "\n".join(code_blocks) if code_blocks else ""
+
+def load_system_prompt(file_path: str) -> str:
+    """
+    Load the system prompt from a given file and return it as a string.
+
+    Args:
+        file_path: Path to the system prompt file
+        
+    Returns:
+        System prompt as a string
+    """
+    try:
+        with open(file_path, 'r') as f:
+            return f.read() 
+    except Exception as e:
+        raise Exception(f"Error loading system prompt file: {str(e)}")
+    
+def insert_functions_schema(system_prompt: str, functions_schema: str) -> str:
+    """
+    Insert the functions schema into the system prompt.
+
+    Args:
+        system_prompt: The system prompt to insert the functions schema into
+        functions_schema: The functions schema to insert into the system prompt
+        
+    Returns:
+        System prompt with the functions schema inserted
+    """
+    return system_prompt.replace("{{functions_schema}}", functions_schema)
