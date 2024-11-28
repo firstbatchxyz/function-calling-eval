@@ -158,30 +158,78 @@ easy
 ##### Functions Schema Python:
 ```python
 def get_tweets(hashtag: str, num_tweets: int) -> list[str]:
-    """Get the latest tweets with a given hashtag."""
+    """
+    Get the latest tweets with a given hashtag.
+
+    Args:
+        hashtag (str): The hashtag to search for.
+        num_tweets (int): The number of tweets to return.
+
+    Returns:
+        list[str]: A list of tweets.
+    """
     pass
 
 def get_fighter_record(fighter: str) -> dict:
-    """Get the stats for a given fighter, namely wins, losses and draws."""
+    """
+    Get the stats for a given fighter, namely wins, losses and draws.
+
+    Args:
+        fighter (str): The name of the fighter.
+
+    Returns:
+        dict: A dictionary containing the fighter's stats.
+    """
     pass
 
 def get_sentiment(text: str) -> float:
-    """Get the sentiment of a given text."""
+    """
+    Get the sentiment of a given text.
+
+    Args:
+        text (str): The text to analyze.
+
+    Returns:
+        float: The sentiment score, between 0 and 1.
+    """
     pass
 ```
 
 ##### Mock Functions:
 ```python
 def get_tweets(hashtag: str, num_tweets: int) -> list[str]:
-    """Get the latest tweets with a given hashtag."""
+    """
+    Get the latest tweets with a given hashtag.
+
+    Args:
+        hashtag (str): The hashtag to search for.
+        num_tweets (int): The number of tweets to return.
+
+    Returns:
+        list[str]: A list of tweets.
+    """
     return ["good tweet"] * num_tweets
 
 def get_fighter_record(fighter: str) -> dict:
-    """Get the stats for a given fighter, namely wins, losses and draws."""
+    """Get the stats for a given fighter, namely wins, losses and draws.
+
+    Args:
+        fighter (str): The name of the fighter.
+
+    Returns:
+        dict: A dictionary containing the fighter's stats.
+    """
     return {"name": fighter, "wins": 17, "losses": 1, "draws": 0}
 
 def get_sentiment(text: str) -> float:
-    """Get the sentiment of a given text."""
+    """Get the sentiment of a given text.
+
+    Args:
+        text (str): The text to analyze.
+
+    Returns:
+        float: The sentiment score, between 0 and 1.
+    """
     return 0.8
 ```
 

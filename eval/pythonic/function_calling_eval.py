@@ -1,7 +1,7 @@
 from typing import Dict, Any, List
 
 from eval.util import load_pythonic_jsonl, extract_codeblocks
-from eval.engine import import_functions, execute_python_code
+from eval.pythonic.engine import import_functions, execute_python_code
 from eval.model import get_completion
 
 def evaluate_model(model_name: str, data_path: str = "data/pythonic.jsonl") -> Dict[str, Any]:

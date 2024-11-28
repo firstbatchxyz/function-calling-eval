@@ -14,7 +14,6 @@ def load_pythonic_jsonl(file_path: str) -> List[PythonicRow]:
     Returns:
         List of PythonicRow objects
     """
-    
     rows = []
     try:
         with open(file_path, 'r') as f:
