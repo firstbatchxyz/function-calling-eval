@@ -1,6 +1,7 @@
 from typing import List
 import json
 import re
+import logging
 
 from eval.schemas import PythonicRow
 
@@ -67,3 +68,32 @@ def insert_functions_schema(system_prompt: str, functions_schema: str) -> str:
         System prompt with the functions schema inserted
     """
     return system_prompt.replace("{{functions_schema}}", functions_schema)
+
+def setup_logger(logger_name: str) -> logging.Logger:
+    """
+    Set up and configure a logger with console handler.
+    
+    Args:
+        logger_name: Name of the logger to configure
+        
+    Returns:
+        Configured logger instance
+    """
+    # Init logger
+    logger = logging.getLogger(logger_name)
+    logger.setLevel(logging.DEBUG)
+
+    # Only add handler if the logger doesn't already have handlers
+    if not logger.handlers:
+        # Create a console handler
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.DEBUG)
+
+        # Create a formatter and add it to the handler
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        console_handler.setFormatter(formatter)
+
+        # Add the handler to the logger
+        logger.addHandler(console_handler)
+
+    return logger

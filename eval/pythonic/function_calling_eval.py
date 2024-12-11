@@ -1,25 +1,19 @@
 from typing import Dict, Any
 import logging
 
-from eval.util import load_pythonic_jsonl, extract_codeblocks, load_system_prompt, insert_functions_schema
+from eval.util import (
+    load_pythonic_jsonl, 
+    extract_codeblocks, 
+    load_system_prompt, 
+    insert_functions_schema,
+    setup_logger
+)
 from eval.pythonic.engine import import_functions, execute_python_code
 from eval.model import get_completion
 from eval.settings import PYTHONIC_DATA_PATH, PYTHONIC_SYSTEM_PROMPT_PATH, SHOW_COMPLETION_IN_EVAL
 
-# Init logger
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)  # Set the logging level (e.g., DEBUG, INFO, WARNING, ERROR, CRITICAL)
-
-# Create a console handler
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.DEBUG)
-
-# Create a formatter and add it to the handler
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-console_handler.setFormatter(formatter)
-
-# Add the handler to the logger
-logger.addHandler(console_handler)
+# Set up logger using the utility function
+logger = setup_logger(__name__)
 
 def evaluate_model(model_name: str, provider: str, data_path: str = PYTHONIC_DATA_PATH) -> Dict[str, Any]:
     """
