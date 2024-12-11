@@ -18,18 +18,14 @@ def import_functions(mock_functions: str) -> List[Callable]:
         SyntaxError: If the function definitions contain invalid Python syntax
         ValueError: If the string doesn't contain valid function definitions
     """
-    # Parse the Python code into an AST
-    try:
-        tree = ast.parse(mock_functions)
-    except SyntaxError as e:
-        raise SyntaxError(f"Invalid Python syntax in mock functions: {str(e)}")
-    
     # Create a new namespace for the functions
     namespace = {}
     
     # Execute the code in the new namespace
     try:
         exec(mock_functions, namespace)
+    except SyntaxError as e:
+        raise SyntaxError(f"Invalid Python syntax in mock functions: {str(e)}")
     except Exception as e:
         raise ValueError(f"Failed to execute mock functions: {str(e)}")
     

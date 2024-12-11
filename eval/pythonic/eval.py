@@ -36,7 +36,12 @@ def evaluate_model(
         }
     """
 
-    logger.info("Evaluating model '{}' with provider '{}'".format(model_name, provider))
+    # Log evaluation details
+    logger.info("Evaluating model '{}' with provider '{}'{}".format(
+        model_name, 
+        provider, 
+        " (showing completions)" if show_completion else ""
+    ))
 
     # Load evaluation data
     rows = load_pythonic_jsonl(data_path)
