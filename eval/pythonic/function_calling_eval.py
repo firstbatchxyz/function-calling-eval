@@ -4,6 +4,23 @@ from eval.util import load_pythonic_jsonl, extract_codeblocks, load_system_promp
 from eval.pythonic.engine import import_functions, execute_python_code
 from eval.model import get_completion
 from eval.settings import PYTHONIC_DATA_PATH, PYTHONIC_SYSTEM_PROMPT_PATH
+import logging
+
+# Init logger
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)  # Set the logging level (e.g., DEBUG, INFO, WARNING, ERROR, CRITICAL)
+
+# Create a console handler
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.DEBUG)
+
+# Create a formatter and add it to the handler
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+console_handler.setFormatter(formatter)
+
+# Add the handler to the logger
+logger.addHandler(console_handler)
 
 def evaluate_model(model_name: str, provider: str, data_path: str = PYTHONIC_DATA_PATH) -> Dict[str, Any]:
     """
@@ -22,6 +39,9 @@ def evaluate_model(model_name: str, provider: str, data_path: str = PYTHONIC_DAT
             "errors": List[str]
         }
     """
+
+    logger.info("Evaluating model '{}' with provider '{}'".format(model_name, provider))
+
     # Load evaluation data
     rows = load_pythonic_jsonl(data_path)
     
@@ -49,6 +69,8 @@ def evaluate_model(model_name: str, provider: str, data_path: str = PYTHONIC_DAT
                 system_prompt=inserted_system_prompt,
                 user_query=row.user_query
             )
+
+            logger.info(f"Completion: {completion}")
 
             # Extract code from completion if needed
             code = extract_codeblocks(completion) if "```" in completion else completion
