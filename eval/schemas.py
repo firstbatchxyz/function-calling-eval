@@ -10,9 +10,10 @@ class FunctionParameter(BaseModel):
     type: str
 
 class Function(BaseModel):
-    """Represents a function with its name and parameters."""
+    """Represents a function with its name, parameters and docstring."""
     name: str
     parameters: Dict[str, FunctionParameter]
+    docstring: str
 
 class FunctionSchema(BaseModel):
     """Schema defining a collection of functions."""

@@ -115,19 +115,22 @@ easy
       "parameters": {
         "hashtag": {"type": "string"},
         "num_tweets": {"type": "integer"}
-      }
+      },
+      "docstring": "Get the latest tweets with a given hashtag.\n\nArgs:\n    hashtag (str): The hashtag to search for.\n    num_tweets (int): The number of tweets to return.\n\nReturns:\n    list[str]: A list of tweets.",
     },
     {
       "name": "get_fighter_stats", 
       "parameters": {
         "fighter": {"type": "string"}
-      }
+      },
+      "docstring": "Get the stats for a given fighter, namely wins, losses and draws.\n\nArgs:\n    fighter (str): The name of the fighter.\n\nReturns:\n    dict: A dictionary containing the fighter's stats.",
     },
     {
       "name": "get_sentiment",
       "parameters": {
         "text": {"type": "string"}
-      }
+      },
+      "docstring": "Get the sentiment of a given text.\n\nArgs:\n    text (str): The text to analyze.\n\nReturns:\n    float: The sentiment score, between 0 and 1.",
     }
   ]
 }
