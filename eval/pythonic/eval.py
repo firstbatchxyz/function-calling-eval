@@ -13,7 +13,7 @@ from eval.util import (
 # Set up logger using the utility function
 logger = setup_logger(__name__)
 
-def evaluate_model(
+def evaluate_model_pythonic(
         model_name: str, 
         provider: str, 
         data_path: str = PYTHONIC_DATA_PATH,
