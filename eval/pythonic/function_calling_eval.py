@@ -1,13 +1,12 @@
 from typing import Dict, Any
+import logging
 
 from eval.util import load_pythonic_jsonl, extract_codeblocks, load_system_prompt, insert_functions_schema
 from eval.pythonic.engine import import_functions, execute_python_code
 from eval.model import get_completion
-from eval.settings import PYTHONIC_DATA_PATH, PYTHONIC_SYSTEM_PROMPT_PATH
-import logging
+from eval.settings import PYTHONIC_DATA_PATH, PYTHONIC_SYSTEM_PROMPT_PATH, SHOW_COMPLETION_IN_EVAL
 
 # Init logger
-
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)  # Set the logging level (e.g., DEBUG, INFO, WARNING, ERROR, CRITICAL)
 
@@ -70,7 +69,8 @@ def evaluate_model(model_name: str, provider: str, data_path: str = PYTHONIC_DAT
                 user_query=row.user_query
             )
 
-            logger.info(f"Completion: {completion}")
+            if SHOW_COMPLETION_IN_EVAL:
+                logger.info(f"Completion: {completion}") 
 
             # Extract code from completion if needed
             code = extract_codeblocks(completion) if "```" in completion else completion

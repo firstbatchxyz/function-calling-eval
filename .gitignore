@@ -166,6 +166,3 @@ cython_debug/
 
 # test.py
 test.py
-
-# Makefile
-Makefile
