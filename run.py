@@ -1,7 +1,9 @@
-from eval.pythonic.function_calling_eval import evaluate_model
+from eval.pythonic import evaluate_model
 
-
-
-result = evaluate_model("llama3.2:latest", "ollama")
+result = evaluate_model(
+    model_name="qwen2.5-coder:3b", 
+    provider="ollama",
+    show_completion=True
+)
 
 print(result)
