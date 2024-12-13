@@ -1,6 +1,6 @@
 from eval.evaluate import evaluate_model, EvaluationMode
 
-model_name = "qwen2.5-coder:3b"
+model_name = "qwen2.5-coder:7b-instruct-fp16"
 
 result = evaluate_model(    
     model_name=model_name, 
@@ -18,4 +18,4 @@ result = evaluate_model(
     show_completion=True
 )
 
-print(f"JSON: {result}")
+print(f"JSON (warning: not implemented): {result}")
