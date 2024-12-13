@@ -7,6 +7,7 @@ PYTHONIC_SYSTEM_PROMPT_PATH = "eval/pythonic/system_prompt.txt"
 FLOAT_TOLERANCE = 1e-6
 
 # Json mode settings
+JSON_SYSTEM_PROMPT_PATH = "eval/json_mode/system_prompt.txt"
 
 # Provider settings
 LM_STUDIO_URL = "http://localhost:1234/v1"

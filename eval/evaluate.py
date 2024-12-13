@@ -15,7 +15,12 @@ def evaluate_model(
         show_completion: bool = SHOW_COMPLETION_IN_EVAL
     ):
     if mode == EvaluationMode.json:
-        raise NotImplementedError("JSON evaluation mode is not implemented yet")
+        from eval.json_mode.eval import evaluate_model_json
+        return evaluate_model_json(
+            model_name=model_name,
+            provider=provider,
+            show_completion=show_completion
+        )
     elif mode == EvaluationMode.pythonic:
         return evaluate_model_pythonic(
             model_name=model_name,
