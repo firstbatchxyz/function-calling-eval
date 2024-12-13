@@ -1,4 +1,5 @@
-from typing import List
+from typing import List, Callable, Dict, Any, get_type_hints, Union
+import inspect
 import json
 import re
 import logging
@@ -97,3 +98,117 @@ def setup_logger(logger_name: str) -> logging.Logger:
         logger.addHandler(console_handler)
 
     return logger
+
+def functions_to_openai(functions: List[Callable]) -> List[Dict[str, Any]]:
+    """
+    Convert a list of functions to a list of OpenAI function definitions.
+    Each function is converted to a dictionary format that OpenAI's API expects
+    for function calling.
+
+    Args:
+        functions: List of functions to convert
+
+    Returns:
+        List of OpenAI function definitions in the format:
+        [{
+            "name": "function_name",
+            "description": "function docstring",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "param1": {"type": "string", "description": "param1 description"},
+                    ...
+                },
+                "required": ["param1", ...],
+                "additionalProperties": false
+            }
+        }, ...]
+    """
+    def _type_to_json_schema(typ: type) -> Dict[str, Any]:
+        """Convert Python types to JSON schema types."""
+        # Handle Union types (e.g., Optional)
+        origin = getattr(typ, '__origin__', None)
+        if origin is Union:
+            types = getattr(typ, '__args__', ())
+            # Handle Optional (Union[T, None])
+            if len(types) == 2 and types[1] is type(None):
+                return _type_to_json_schema(types[0])
+            
+        # Handle List, Dict, etc.
+        if origin is list:
+            item_type = getattr(typ, '__args__', (Any,))[0]
+            return {
+                "type": "array",
+                "items": _type_to_json_schema(item_type)
+            }
+        elif origin is dict:
+            return {"type": "object"}
+        
+        # Handle basic types
+        type_map = {
+            str: {"type": "string"},
+            int: {"type": "integer"},
+            float: {"type": "number"},
+            bool: {"type": "boolean"},
+            list: {"type": "array"},
+            dict: {"type": "object"},
+            None: {"type": "null"}
+        }
+        return type_map.get(typ, {"type": "string"})
+
+    openai_functions = []
+    
+    for func in functions:
+        # Get function signature
+        sig = inspect.signature(func)
+        
+        # Get type hints and docstring
+        type_hints = get_type_hints(func)
+        docstring = inspect.getdoc(func) or ""
+        
+        # Parse docstring to get parameter descriptions
+        param_docs = {}
+        if docstring:
+            for line in docstring.split('\n'):
+                if ':param' in line or 'Args:' in line:
+                    match = re.search(r':param\s+(\w+):\s*(.+)', line)
+                    if match:
+                        param_docs[match.group(1)] = match.group(2).strip()
+        
+        # Build parameters schema
+        properties = {}
+        required = []
+        
+        for param_name, param in sig.parameters.items():
+            # Skip self parameter for methods
+            if param_name == 'self':
+                continue
+                
+            param_type = type_hints.get(param_name, str)
+            type_schema = _type_to_json_schema(param_type)
+            param_schema = {
+                **type_schema,
+                "description": param_docs.get(param_name, f"Parameter {param_name}")
+            }
+            
+            properties[param_name] = param_schema
+            
+            # Add to required if parameter has no default value
+            if param.default == inspect.Parameter.empty:
+                required.append(param_name)
+        
+        # Create the OpenAI function definition
+        function_def = {
+            "name": func.__name__,
+            "description": docstring.split('\n')[0] if docstring else func.__name__,
+            "parameters": {
+                "type": "object",
+                "properties": properties,
+                "required": required,
+                "additionalProperties": False
+            }
+        }
+        
+        openai_functions.append(function_def)
+    
+    return openai_functions
