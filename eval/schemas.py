@@ -25,16 +25,17 @@ class FunctionResults(BaseModel):
     variables: Dict[str, Any] 
     errors: List[str]
 
-    def has_values(self, values_list: List[Any]) -> bool:
+    def check_score(self, values_list: List[Any], functions_list: List[str]) -> float:
         """
-        Check if all the values in the list exist in the variables, with a tolerance threshold for floats.
+        Calculate a score based on presence of values and functions in results.
+        Max score is 1.0, split between values (0.5) and functions (0.5) proportionally.
 
         Args:
             values_list: The values to search for
-            tolerance: The tolerance threshold for floating point comparisons (default: 1e-6)
+            functions_list: The functions to search for
 
         Returns:
-            bool: True if all the values are found in the variables, False otherwise
+            float: Score between 0 and 1, where 1 means all values and functions present
         """
         def values_match(value1: Any, value2: Any) -> bool:
             """Check if two values match, considering tolerance for floats."""
@@ -42,22 +43,18 @@ class FunctionResults(BaseModel):
                 return abs(value1 - value2) <= FLOAT_TOLERANCE
             return value1 == value2
 
-        return all(
-            any(values_match(value, var_value) for var_value in self.variables.values())
-            for value in values_list
+        # Count matching values
+        matching_values = sum(
+            1 for value in values_list
+            if any(values_match(value, var_value) for var_value in self.variables.values())
         )
-    
-    def has_functions(self, functions_list: List[str]) -> bool:
-        """
-        Check if all the functions in the list exist as keys in the function_results.
+        values_score = 0.5 * (matching_values / len(values_list) if values_list else 1.0)
 
-        Args:
-            functions_list: The functions to search for
+        # Count matching functions
+        matching_functions = sum(1 for function in functions_list if function in self.function_results.keys())
+        functions_score = 0.5 * (matching_functions / len(functions_list) if functions_list else 1.0)
 
-        Returns:
-            bool: True if all the functions are found, False otherwise
-        """
-        return all(function in self.function_results.keys() for function in functions_list)
+        return values_score + functions_score
     
 class Checklist(BaseModel):
     """Checklist for evaluating function calling."""

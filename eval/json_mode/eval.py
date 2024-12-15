@@ -72,10 +72,10 @@ def evaluate_model_json(
             
             # Execute function calls
             results = execute_json_function_calls(function_calls, functions)
-            
+
             # Check if required functions were called with correct values
-            if results.has_functions(row.checklist.functions) and results.has_values(row.checklist.values):
-                correct += 1
+            score = results.check_score(row.checklist.values, row.checklist.functions)
+            correct += score
                 
         except Exception as e:
             errors.append(f"Error processing row: {str(e)}")

@@ -81,8 +81,8 @@ def evaluate_model_pythonic(
             results = execute_python_code(code, functions)
             
             # Check if required functions were called
-            if results.has_functions(row.checklist.functions) and results.has_values(row.checklist.values):
-                correct += 1
+            score = results.check_score(row.checklist.values, row.checklist.functions)
+            correct += score
                 
         except Exception as e:
             errors.append(f"Error processing row: {str(e)}")
