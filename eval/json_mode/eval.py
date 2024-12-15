@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, Any, List, Callable
 import json
 
 from eval.json_mode.engine import parse_json_completion, execute_json_function_calls, import_functions
@@ -48,7 +48,7 @@ def evaluate_model_json(
     for row in rows:
         try:
             # Import mock functions
-            functions = [] # TODO: Implement this
+            functions: List[Callable] = import_functions(row.mock_functions)
             
             # Insert schema into system prompt
             inserted_system_prompt = insert_functions_schema(

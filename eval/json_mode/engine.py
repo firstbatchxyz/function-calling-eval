@@ -1,5 +1,5 @@
 import json
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Callable
 
 from eval.schemas import FunctionResults
 from eval.pythonic.engine import import_functions, execute_python_code
@@ -22,14 +22,14 @@ def parse_json_completion(completion: str) -> Dict[str, Any]:
 
 def execute_json_function_calls(
     function_calls: Dict[str, Any],
-    mock_functions: List[Any]
+    functions: List[Callable]
 ):
     """
     Execute function calls specified in JSON format using mock functions.
     
     Args:
         function_calls: Dictionary containing function calls and their arguments
-        mock_functions: List of mock function implementations
+        functions: List of function implementations
         
     Returns:
         FunctionResults containing execution results
