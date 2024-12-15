@@ -1,23 +1,23 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from enum import Enum
 
 from pydantic import BaseModel
 
 from eval.settings import FLOAT_TOLERANCE
 
-class FunctionParameter(BaseModel):
-    """Represents a parameter for a function with its type."""
+class OpenAIParameter(BaseModel):
+    """OpenAI parameter schema."""
     type: str
+    description: Optional[str] = None
+    required: List[str]
+    properties: Dict[str, Dict[str, str]]
+    additionalProperties: bool = False
 
-class Function(BaseModel):
-    """Represents a function with its name, parameters and docstring."""
+class OpenAIFunction(BaseModel):
+    """OpenAI function schema."""
     name: str
-    parameters: Dict[str, FunctionParameter]
-    docstring: str
-
-class FunctionSchema(BaseModel):
-    """Schema defining a collection of functions."""
-    functions: List[Function]
+    description: str
+    parameters: OpenAIParameter
 
 class FunctionResults(BaseModel):
     """Results from executing functions, including return values, variables and errors."""
@@ -78,7 +78,7 @@ class PythonicRow(BaseModel):
         function_results: Results from executing the functions
     """
     difficulty: str
-    function_schema_json: FunctionSchema
+    function_schema_json: List[OpenAIFunction]
     function_schema_python: str
     mock_functions: str
     completion: str
