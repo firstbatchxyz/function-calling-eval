@@ -2,7 +2,10 @@ import json
 from typing import Dict, Any, List, Callable
 
 from eval.schemas import FunctionResults
-from eval.pythonic.engine import import_functions, execute_python_code
+from eval.pythonic.engine import execute_python_code, import_functions
+from eval.util import setup_logger
+
+logger = setup_logger(__name__)
 
 def parse_json_completion(completion: str) -> List[Dict[str, Any]]:
     """Parse the completion string to extract JSON array of function calls."""
@@ -41,23 +44,23 @@ def execute_json_function_calls(
     Returns:
         FunctionResults containing execution results
     """
-    # Convert JSON function calls to Python code
     python_code = []
-    for call in function_calls:
-        func_name = call.get('name')
-        args = call.get('args', [])
-        kwargs = call.get('kwargs', {})
-        
-        # Build argument string
-        arg_parts = []
-        if args:
-            arg_parts.extend(str(arg) for arg in args)
-        if kwargs:
-            arg_parts.extend(f"{k}={repr(v)}" for k, v in kwargs.items())
-        arg_string = ', '.join(arg_parts)
-        
-        # Build function call
-        python_code.append(f"{func_name}({arg_string})")
+    
+    for call_dict in function_calls:
+        # Handle each function call in the dictionary
+        for func_name, params in call_dict.items():
+            # Build argument string from the params dictionary
+            arg_parts = []
+            
+            # Handle text parameter as a string
+            for param_name, param_value in params.items():
+                if isinstance(param_value, str):
+                    arg_parts.append(f"{param_name}='{param_value}'")
+                else:
+                    arg_parts.append(f"{param_name}={repr(param_value)}")
+            
+            arg_string = ', '.join(arg_parts)
+            python_code.append(f"{func_name}({arg_string})")
     
     # Join all function calls with newlines
     final_code = '\n'.join(python_code)

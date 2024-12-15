@@ -18,4 +18,4 @@ result = evaluate_model(
     show_completion=True
 )
 
-print(f"JSON (warning: not implemented): {result}")
+print(f"JSON: {result}")

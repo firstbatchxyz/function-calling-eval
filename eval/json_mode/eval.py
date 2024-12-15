@@ -65,7 +65,7 @@ def evaluate_model_json(
             )
 
             if show_completion:
-                logger.info(f"Completion: {completion}")
+                logger.info(f"Completion:\n{completion}")
                 
             # Parse JSON from completion
             function_calls = parse_json_completion(completion)
