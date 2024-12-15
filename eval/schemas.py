@@ -81,7 +81,7 @@ class PythonicRow(BaseModel):
     function_schema_json: List[OpenAIFunction]
     function_schema_python: str
     mock_functions: str
-    completion: str
+    completion: Optional[str] = None
     user_query: str
     checklist: Checklist
     
