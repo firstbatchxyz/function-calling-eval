@@ -7,12 +7,16 @@ Available functions:
 
 Your response must be valid JSON that maps function names to their arguments. For example:
 
-{
+```json
+[
     "function_name": {
         "arg1": "value1",
         "arg2": "value2"
     },
-    "other_function": "single_argument"
-}
+    "function_name2": {
+        "arg1": "value1"
+    }
+]
+```
 
 DO NOT include any explanations or text outside of the JSON object.
