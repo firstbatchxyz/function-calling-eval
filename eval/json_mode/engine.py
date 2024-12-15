@@ -28,17 +28,39 @@ def parse_json_completion(completion: str) -> List[Dict[str, Any]]:
             raise ValueError("Could not parse JSON array from completion")
 
 def execute_json_function_calls(
-    function_calls: Dict[str, Any],
+    function_calls: List[Dict[str, Any]],
     functions: List[Callable]
-):
+) -> FunctionResults:
     """
     Execute function calls specified in JSON format using mock functions.
     
     Args:
-        function_calls: Dictionary containing function calls and their arguments
+        function_calls: List of dictionaries containing function calls and their arguments
         functions: List of function implementations
         
     Returns:
         FunctionResults containing execution results
     """
-    pass
+    # Convert JSON function calls to Python code
+    python_code = []
+    for call in function_calls:
+        func_name = call.get('name')
+        args = call.get('args', [])
+        kwargs = call.get('kwargs', {})
+        
+        # Build argument string
+        arg_parts = []
+        if args:
+            arg_parts.extend(str(arg) for arg in args)
+        if kwargs:
+            arg_parts.extend(f"{k}={repr(v)}" for k, v in kwargs.items())
+        arg_string = ', '.join(arg_parts)
+        
+        # Build function call
+        python_code.append(f"{func_name}({arg_string})")
+    
+    # Join all function calls with newlines
+    final_code = '\n'.join(python_code)
+    
+    # Execute the generated Python code using execute_python_code
+    return execute_python_code(final_code, functions)

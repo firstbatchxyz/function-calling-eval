@@ -1,6 +1,7 @@
 from enum import Enum
 
 from eval.pythonic import evaluate_model_pythonic
+from eval.json_mode import evaluate_model_json
 from eval.settings import SHOW_COMPLETION_IN_EVAL
 
 class EvaluationMode(Enum):
@@ -15,7 +16,6 @@ def evaluate_model(
         show_completion: bool = SHOW_COMPLETION_IN_EVAL
     ):
     if mode == EvaluationMode.json:
-        from eval.json_mode.eval import evaluate_model_json
         return evaluate_model_json(
             model_name=model_name,
             provider=provider,

@@ -53,7 +53,7 @@ def evaluate_model_json(
             # Insert schema into system prompt
             inserted_system_prompt = insert_functions_schema(
                 system_prompt, 
-                json.dumps(row.function_schema_json.model_dump(), indent=4)
+                json.dumps([schema.model_dump() for schema in row.function_schema_json], indent=4)
             )
             
             # Get completion
@@ -74,7 +74,8 @@ def evaluate_model_json(
             results = execute_json_function_calls(function_calls, functions)
             
             # Check if required functions were called with correct values
-            correct += 1 # TODO: Implement this
+            if results.has_functions(row.checklist.functions) and results.has_values(row.checklist.values):
+                correct += 1
                 
         except Exception as e:
             errors.append(f"Error processing row: {str(e)}")
