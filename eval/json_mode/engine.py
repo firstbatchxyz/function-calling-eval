@@ -38,32 +38,43 @@ def execute_json_function_calls(
     Execute function calls specified in JSON format using mock functions.
     
     Args:
-        function_calls: List of dictionaries containing function calls and their arguments
+        function_calls: List of dictionaries containing function calls in format:
+            {
+                "name": "function_name",
+                "args": {
+                    "arg1": "value1",
+                    ...
+                }
+            }
         functions: List of function implementations
         
     Returns:
         FunctionResults containing execution results
     """
     python_code = []
+    call_counter = 0
     
     for call_dict in function_calls:
-        # Handle each function call in the dictionary
-        for func_name, params in call_dict.items():
-            # Build argument string from the params dictionary
-            arg_parts = []
-            
-            # Handle text parameter as a string
-            for param_name, param_value in params.items():
-                if isinstance(param_value, str):
-                    arg_parts.append(f"{param_name}='{param_value}'")
-                else:
-                    arg_parts.append(f"{param_name}={repr(param_value)}")
-            
-            arg_string = ', '.join(arg_parts)
-            python_code.append(f"{func_name}({arg_string})")
+        # Get function name and arguments from the new format
+        func_name = call_dict["name"]
+        params = call_dict["args"]
+        
+        # Build argument string from the params dictionary
+        arg_parts = []
+        
+        # Handle text parameter as a string
+        for param_name, param_value in params.items():
+            if isinstance(param_value, str):
+                arg_parts.append(f"{param_name}='{param_value}'")
+            else:
+                arg_parts.append(f"{param_name}={repr(param_value)}")
+        
+        arg_string = ', '.join(arg_parts)
+        var_name = f"result_{call_counter}"
+        python_code.append(f"{var_name} = {func_name}({arg_string})")
+        call_counter += 1
     
     # Join all function calls with newlines
     final_code = '\n'.join(python_code)
-    
     # Execute the generated Python code using execute_python_code
     return execute_python_code(final_code, functions)

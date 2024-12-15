@@ -9,12 +9,18 @@ Your response must be valid JSON that maps function names to their arguments. Fo
 
 ```json
 [
-    "function_name": {
-        "arg1": "value1",
-        "arg2": "value2"
+    {
+        "name": "function_name",
+        "args": {
+            "arg1": "value1",
+            "arg2": "value2"            
+        }
     },
-    "function_name2": {
-        "arg1": "value1"
+    {
+        "name": "function_name2",
+        "args": {
+            "arg1": "value1"
+        }
     }
 ]
 ```
