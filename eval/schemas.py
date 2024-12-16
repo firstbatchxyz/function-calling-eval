@@ -10,7 +10,7 @@ class OpenAIParameter(BaseModel):
     type: str
     description: Optional[str] = None
     required: List[str]
-    properties: Dict[str, Dict[str, str]]
+    properties: Dict[str, Dict[str, Any]]  # Changed Dict[str, str] to Dict[str, Any] to handle nested types
     additionalProperties: bool = False
 
 class OpenAIFunction(BaseModel):
