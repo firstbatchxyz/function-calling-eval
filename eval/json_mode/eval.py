@@ -16,6 +16,7 @@ logger = setup_logger(__name__)
 def evaluate_model_json(
     model_name: str,
     provider: str,
+    strict: bool = False,
     data_path: str = PYTHONIC_DATA_PATH,
     show_completion: bool = False
 ) -> Dict[str, Any]:
@@ -75,6 +76,10 @@ def evaluate_model_json(
 
             # Check if required functions were called with correct values
             score = results.check_score(row.checklist.values, row.checklist.functions)
+
+            if strict:
+                score = 1 if score >= 0.99 and score < 1.01 else 0
+
             correct += score
                 
         except Exception as e:

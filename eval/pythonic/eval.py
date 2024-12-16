@@ -16,6 +16,7 @@ logger = setup_logger(__name__)
 def evaluate_model_pythonic(
         model_name: str, 
         provider: str, 
+        strict: bool = False,
         data_path: str = PYTHONIC_DATA_PATH,
         show_completion: bool = SHOW_COMPLETION_IN_EVAL
     ) -> Dict[str, Any]:
@@ -82,6 +83,10 @@ def evaluate_model_pythonic(
             
             # Check if required functions were called
             score = results.check_score(row.checklist.values, row.checklist.functions)
+
+            if strict:
+                score = 1 if score >= 0.99 and score < 1.01 else 0
+
             correct += score
                 
         except Exception as e:

@@ -13,17 +13,20 @@ def evaluate_model(
         model_name: str, 
         provider: str, 
         mode: EvaluationMode,
+        strict: bool = False,
         show_completion: bool = SHOW_COMPLETION_IN_EVAL
     ):
     if mode == EvaluationMode.json:
         return evaluate_model_json(
             model_name=model_name,
             provider=provider,
-            show_completion=show_completion
+            show_completion=show_completion,
+            strict=strict
         )
     elif mode == EvaluationMode.pythonic:
         return evaluate_model_pythonic(
             model_name=model_name,
             provider=provider,
-            show_completion=show_completion
+            show_completion=show_completion,
+            strict=strict
         )
