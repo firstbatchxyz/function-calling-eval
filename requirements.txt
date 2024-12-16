@@ -3,3 +3,4 @@ datasets==3.1.0
 openai==1.46.0
 dria==0.0.99
 pydantic
+python-dotenv
