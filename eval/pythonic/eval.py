@@ -1,5 +1,5 @@
 from typing import Dict, Any
-
+from tqdm import tqdm
 from eval.pythonic.engine import import_functions, execute_python_code
 from eval.model import get_completion
 from eval.settings import PYTHONIC_DATA_PATH, PYTHONIC_SYSTEM_PROMPT_PATH, SHOW_COMPLETION_IN_EVAL
@@ -56,7 +56,7 @@ def evaluate_model_pythonic(
     system_prompt = load_system_prompt(PYTHONIC_SYSTEM_PROMPT_PATH)
     
     # Evaluate each example
-    for row in rows:
+    for row in tqdm(rows, desc="Evaluating model '{}'".format(model_name)):
         try:
             # Import mock functions
             functions = import_functions(row.mock_functions)

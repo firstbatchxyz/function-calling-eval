@@ -1,6 +1,6 @@
 from typing import Dict, Any, List, Callable
 import json
-
+from tqdm import tqdm
 from eval.json_mode.engine import parse_json_completion, execute_json_function_calls, import_functions
 from eval.model import get_completion
 from eval.settings import PYTHONIC_DATA_PATH, JSON_SYSTEM_PROMPT_PATH
@@ -46,7 +46,7 @@ def evaluate_model_json(
     system_prompt = load_system_prompt(JSON_SYSTEM_PROMPT_PATH)
     
     # Evaluate each example
-    for row in rows:
+    for row in tqdm(rows, desc=f"Evaluating model with JSON {model_name}"):
         try:
             # Import mock functions
             functions: List[Callable] = import_functions(row.mock_functions)
