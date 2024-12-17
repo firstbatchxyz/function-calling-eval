@@ -189,7 +189,7 @@ def get_tweets(hashtag: str, num_tweets: int) -> list[str]:
     Returns:
         list[str]: A list of tweets.
     """
-    return ["good tweet"] * num_tweets
+    return [f"good tweet {hashtag}"] * num_tweets
 
 def get_fighter_record(fighter: str) -> dict:
     """Get the stats for a given fighter, namely wins, losses and draws.
@@ -211,7 +211,7 @@ def get_sentiment(text: str) -> float:
     Returns:
         float: The sentiment score, between 0 and 1.
     """
-    return 0.8
+    return 0.8 if "good tweet" in text else 0.2
 ```
 
 ##### User Query:   
