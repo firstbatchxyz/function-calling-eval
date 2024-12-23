@@ -24,7 +24,7 @@ def import_functions(mock_functions: str) -> List[Callable]:
 
     # Execute the code in the new namespace
     try:
-        import_string = "from typing import List, Dict, Any, Callable"
+        import_string = "from typing import List, Dict, Any, Tuple, Union, Callable"
         exec(import_string, namespace)
         exec(mock_functions, namespace)
     except SyntaxError as e:
