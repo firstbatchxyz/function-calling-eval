@@ -7,6 +7,7 @@ from eval.util import setup_logger
 
 logger = setup_logger(__name__)
 
+
 def parse_json_completion(completion: str) -> List[Dict[str, Any]]:
     """Parse the completion string to extract JSON array of function calls."""
     try:
@@ -22,21 +23,21 @@ def parse_json_completion(completion: str) -> List[Dict[str, Any]]:
     except json.JSONDecodeError:
         # If that fails, try to find JSON array within the completion
         try:
-            start = completion.find('[')
-            end = completion.rfind(']') + 1
+            start = completion.find("[")
+            end = completion.rfind("]") + 1
             if start >= 0 and end > start:
                 json_str = completion[start:end]
                 return json.loads(json_str)
         except (json.JSONDecodeError, ValueError):
             raise ValueError("Could not parse JSON array from completion")
 
+
 def execute_json_function_calls(
-    function_calls: List[Dict[str, Any]],
-    functions: List[Callable]
+    function_calls: List[Dict[str, Any]], functions: List[Callable]
 ) -> FunctionResults:
     """
     Execute function calls specified in JSON format using mock functions.
-    
+
     Args:
         function_calls: List of dictionaries containing function calls in format:
             {
@@ -47,34 +48,34 @@ def execute_json_function_calls(
                 }
             }
         functions: List of function implementations
-        
+
     Returns:
         FunctionResults containing execution results
     """
     python_code = []
     call_counter = 0
-    
+
     for call_dict in function_calls:
         # Get function name and arguments from the new format
         func_name = call_dict["name"]
         params = call_dict["args"]
-        
+
         # Build argument string from the params dictionary
         arg_parts = []
-        
+
         # Handle text parameter as a string
         for param_name, param_value in params.items():
             if isinstance(param_value, str):
                 arg_parts.append(f"{param_name}='{param_value}'")
             else:
                 arg_parts.append(f"{param_name}={repr(param_value)}")
-        
-        arg_string = ', '.join(arg_parts)
+
+        arg_string = ", ".join(arg_parts)
         var_name = f"result_{call_counter}"
         python_code.append(f"{var_name} = {func_name}({arg_string})")
         call_counter += 1
-    
+
     # Join all function calls with newlines
-    final_code = '\n'.join(python_code)
+    final_code = "\n".join(python_code)
     # Execute the generated Python code using execute_python_code
     return execute_python_code(final_code, functions)
