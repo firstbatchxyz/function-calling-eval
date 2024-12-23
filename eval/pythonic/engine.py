@@ -109,7 +109,7 @@ def execute_python_code(
         env[func.__name__] = make_wrapper(func.__name__, func)
 
     # Add the typing types to the execution environment
-    import_string = "from typing import List, Dict, Any, Callable"
+    import_string = "from typing import List, Dict, Any, Union, Tuple, Callable"
     exec(import_string, env)
 
     # Execute the code and catch any exceptions
