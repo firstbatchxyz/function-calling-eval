@@ -8,7 +8,7 @@ load_dotenv()
 SHOW_COMPLETION_IN_EVAL = False
 
 # Pythonic settings
-PYTHONIC_DATA_PATH = "data/pythonic.jsonl"
+PYTHONIC_DATA_PATH = "data/function_calling_eval.jsonl"
 PYTHONIC_SYSTEM_PROMPT_PATH = "eval/pythonic/system_prompt.txt"
 FLOAT_TOLERANCE = 1e-6
 

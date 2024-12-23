@@ -36,7 +36,8 @@ def get_completion(model_name: str, provider: str, system_prompt: str, user_quer
     # Make the API call to get the completion
     response = client.chat.completions.create(
         model=model_name,
-        messages=messages
+        messages=messages,
+        temperature=0.0
     )
 
     # Extract and return the assistant's reply
