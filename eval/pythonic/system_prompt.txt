@@ -6,6 +6,16 @@ You can use Python code freely, including the following available functions:
 {{functions_schema}}
 <|end_functions_schema|>
 
+The following dangerous builtins are restricted for security:
+- exec
+- eval
+- execfile
+- compile
+- importlib
+- __import__
+- input
+- exit
+
 Think step by step and provide your reasoning, outside of the function calls.
 You can write Python code and use the available functions. Provide all your python code in a SINGLE markdown code block like the following:
 
