@@ -46,7 +46,7 @@ async def evaluate_model_pythonic(
 
     # Log evaluation details
     logger.info(
-        "Evaluating model '{}' with provider '{}'{}".format(
+        "Evaluating model '{}' with provider '{}'{} in Pythonic mode".format(
             model_name, provider, " (showing completions)" if show_completion else ""
         )
     )
