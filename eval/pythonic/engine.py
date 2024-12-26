@@ -1,8 +1,7 @@
 from typing import List, Callable, Dict, Any
 import ast
 from types import FunctionType
-import signal
-from contextlib import contextmanager
+from concurrent.futures import ThreadPoolExecutor, TimeoutError
 
 from eval.settings import CODE_EXECUTION_TIMEOUT
 from eval.schemas import FunctionResults
@@ -16,60 +15,18 @@ class TimeoutError(Exception):
     """Raised when code execution exceeds the timeout limit."""
     pass
 
-@contextmanager
-def timeout(seconds):
-    def signal_handler(signum, frame):
-        raise TimeoutError(f"Code execution timed out after {seconds} seconds")
-
-    # Set the signal handler and a timeout
-    signal.signal(signal.SIGALRM, signal_handler)
-    signal.alarm(seconds)
-
-    try:
-        yield
-    finally:
-        # Disable the alarm
-        signal.alarm(0)
-
-
 def import_functions(mock_functions: str) -> List[Callable]:
     """
     Import mock functions from a string containing function definitions and return them as callable functions.
-
-    Args:
-        mock_functions: String containing Python function definitions
-
-    Returns:
-        List of callable function objects
-
-    Raises:
-        SyntaxError: If the function definitions contain invalid Python syntax
-        ValueError: If the string doesn't contain valid function definitions
     """
-    # Create a new namespace for the functions
     namespace = {}
-
-    # Execute the code in the new namespace
-    try:
-        import_string = "from typing import List, Dict, Any, Tuple, Union, Callable"
-        exec(import_string, namespace)
-        exec(mock_functions, namespace)
-    except SyntaxError as e:
-        raise SyntaxError(f"Invalid Python syntax in mock functions: {str(e)}")
-    except Exception as e:
-        raise ValueError(f"Failed to execute mock functions: {str(e)}")
-
-    # Extract only the functions from the namespace
-    functions = []
-    for _, obj in namespace.items():
-        if isinstance(obj, FunctionType):
-            functions.append(obj)
-
+    import_string = "from typing import List, Dict, Any, Union, Tuple, Callable, Optional"
+    exec(import_string, namespace)
+    exec(mock_functions, namespace)
+    functions = [obj for obj in namespace.values() if isinstance(obj, FunctionType)]
     if not functions:
         raise ValueError("No functions found in the provided mock functions string")
-
     return functions
-
 
 def execute_python_code(
     code: str,
@@ -78,99 +35,88 @@ def execute_python_code(
     safe: bool = True,
 ) -> FunctionResults:
     """
-    Execute Python code with given functions and context variables,
-    and return the results of function calls and variables defined in the code.
-
-    Args:
-        code (str): The Python code to execute.
-        functions (List[Callable], optional): A list of functions to make available to the code.
-        context_variables (Dict[str, Any], optional): Variables to make available to the code.
-        safe (bool, optional): Whether to check for dangerous builtin usage. Defaults to True.
-
-    Returns:
-        Dict[str, Any]: A dictionary containing the function results, variables defined in the code, and any errors.
-
-    Raises:
-        TimeoutError: If code execution exceeds the timeout limit
-        NotAllowedError: If dangerous builtins are used when safe=True
+    Execute Python code with given functions and context variables, and return the results.
     """
-    # Define dangerous builtins to check
     dangerous_builtins = [
-        "exec",
-        "eval",
-        "execfile",
-        "compile",
-        "importlib",
-        "__import__",
-        "input",
+        "exec", "eval", "execfile", "compile", "exit", "input"
     ]
 
-    # If safe mode is enabled, check for dangerous builtin usage
     if safe:
-        try:
-            tree = ast.parse(code)
-            for node in ast.walk(tree):
-                if isinstance(node, ast.Name) and node.id in dangerous_builtins:
-                    raise NotAllowedError(f"Usage of dangerous builtin '{node.id}' is not allowed")
-        except SyntaxError as e:
-            raise SyntaxError(f"Invalid Python syntax in code: {str(e)}")
+        tree = ast.parse(code)
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Name) and node.id in dangerous_builtins:
+                return FunctionResults(
+                    function_results={},
+                    variables={},
+                    errors=[f"NotAllowedError: Usage of dangerous builtin '{node.id}' is not allowed"]
+                )
 
-    # Create an execution environment
-    env = {"__builtins__": __builtins__}
+    # Create a copy of builtins and remove dangerous ones
+    import builtins
+    filtered_builtins = {k: v for k, v in builtins.__dict__.items() if k not in dangerous_builtins}
 
-    # Record the initial environment keys
+    env = {"__builtins__": filtered_builtins}
+    import_string = "from typing import List, Dict, Any, Union, Tuple, Callable, Optional"
+    exec(import_string, env)
+    env.update(context_variables)
+
+    # Record initial environment keys
     initial_keys = set(env.keys())
 
-    # Add context variables to the execution environment
-    if context_variables and isinstance(context_variables, dict):
-        env.update(context_variables)
+    # Dictionary to hold function call results mapped to variable names
+    function_to_variable = {}
 
-    # A dictionary to store function call results
+    # Parse AST to map function calls to their assignment variables
+    tree = ast.parse(code)
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign):
+            if isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Name):
+                func_name = node.value.func.id
+                var_name = node.targets[0].id
+                function_to_variable.setdefault(func_name, []).append(var_name)
+
+    # Wrap the provided functions to capture their return values
     call_results = {}
 
-    # Wrap the functions to capture their return values
     def make_wrapper(func_name, func):
         def wrapper(*args, **kwargs):
             result = func(*args, **kwargs)
             call_results.setdefault(func_name, []).append(result)
             return result
-
         return wrapper
 
-    # Add the wrapped functions to the execution environment
     for func in functions:
         env[func.__name__] = make_wrapper(func.__name__, func)
 
-    # Add the typing types to the execution environment
-    import_string = "from typing import List, Dict, Any, Union, Tuple, Callable, Optional"
-    exec(import_string, env)
-
-    # Execute the code and catch any exceptions
     errors = []
+
     try:
-        with timeout(CODE_EXECUTION_TIMEOUT):
-            exec(code, env)
-    except TimeoutError as e:
-        errors.append(str(e))
+        with ThreadPoolExecutor() as executor:
+            future = executor.submit(exec, code, env)
+            try:
+                future.result(timeout=CODE_EXECUTION_TIMEOUT)
+            except TimeoutError:
+                errors.append("Code execution exceeded timeout limit.")
+            except Exception as e:
+                import traceback
+                errors.append(f"{type(e).__name__}: {str(e)}\n{traceback.format_exc()}")
     except Exception as e:
         errors.append(str(e))
 
-    # Extract variables defined in the code
+    # Collect variables defined in the code
     variables = {
         k: v
         for k, v in env.items()
         if k not in initial_keys and not k.startswith("__") and not callable(v)
     }
 
-    # Match the call results with the variable names
-    for func_name, results in list(call_results.items()):
-        for variable_name, variable_value in variables.items():
-            for result in results:
-                if variable_value == result:
-                    call_results[func_name] = variable_name
-                    break
+    # Create function results mapping
+    function_results = {}
+    for func_name, var_names in function_to_variable.items():
+        function_results[func_name] = var_names
 
-    # Return function results, variables, and any errors
     return FunctionResults(
-        function_results=call_results, variables=variables, errors=errors
+        function_results=function_results,
+        variables=variables,
+        errors=errors
     )
