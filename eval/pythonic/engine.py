@@ -1,8 +1,35 @@
 from typing import List, Callable, Dict, Any
 import ast
 from types import FunctionType
+import signal
+from contextlib import contextmanager
 
+from eval.settings import CODE_EXECUTION_TIMEOUT
 from eval.schemas import FunctionResults
+
+# Define custom exceptions
+class NotAllowedError(Exception):
+    """Raised when dangerous builtins are used in the code."""
+    pass
+
+class TimeoutError(Exception):
+    """Raised when code execution exceeds the timeout limit."""
+    pass
+
+@contextmanager
+def timeout(seconds):
+    def signal_handler(signum, frame):
+        raise TimeoutError(f"Code execution timed out after {seconds} seconds")
+
+    # Set the signal handler and a timeout
+    signal.signal(signal.SIGALRM, signal_handler)
+    signal.alarm(seconds)
+
+    try:
+        yield
+    finally:
+        # Disable the alarm
+        signal.alarm(0)
 
 
 def import_functions(mock_functions: str) -> List[Callable]:
@@ -48,7 +75,7 @@ def execute_python_code(
     code: str,
     functions: List[Callable] = [],
     context_variables: Dict[str, Any] = {},
-    safe: bool = False,
+    safe: bool = True,
 ) -> FunctionResults:
     """
     Execute Python code with given functions and context variables,
@@ -58,12 +85,16 @@ def execute_python_code(
         code (str): The Python code to execute.
         functions (List[Callable], optional): A list of functions to make available to the code.
         context_variables (Dict[str, Any], optional): Variables to make available to the code.
-        safe (bool, optional): Whether to sandbox the execution environment by restricting dangerous builtins.
+        safe (bool, optional): Whether to check for dangerous builtin usage. Defaults to True.
 
     Returns:
         Dict[str, Any]: A dictionary containing the function results, variables defined in the code, and any errors.
+
+    Raises:
+        TimeoutError: If code execution exceeds the timeout limit
+        NotAllowedError: If dangerous builtins are used when safe=True
     """
-    # Define dangerous builtins to restrict
+    # Define dangerous builtins to check
     dangerous_builtins = [
         "exec",
         "eval",
@@ -74,16 +105,18 @@ def execute_python_code(
         "input",
     ]
 
+    # If safe mode is enabled, check for dangerous builtin usage
+    if safe:
+        try:
+            tree = ast.parse(code)
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Name) and node.id in dangerous_builtins:
+                    raise NotAllowedError(f"Usage of dangerous builtin '{node.id}' is not allowed")
+        except SyntaxError as e:
+            raise SyntaxError(f"Invalid Python syntax in code: {str(e)}")
+
     # Create an execution environment
     env = {"__builtins__": __builtins__}
-
-    # If sandboxing is enabled, restrict dangerous builtins
-    if safe:
-        env["__builtins__"] = {
-            k: v
-            for k, v in __builtins__.__dict__.items()
-            if k not in dangerous_builtins
-        }
 
     # Record the initial environment keys
     initial_keys = set(env.keys())
@@ -109,13 +142,16 @@ def execute_python_code(
         env[func.__name__] = make_wrapper(func.__name__, func)
 
     # Add the typing types to the execution environment
-    import_string = "from typing import List, Dict, Any, Union, Tuple, Callable"
+    import_string = "from typing import List, Dict, Any, Union, Tuple, Callable, Optional"
     exec(import_string, env)
 
     # Execute the code and catch any exceptions
     errors = []
     try:
-        exec(code, env)
+        with timeout(CODE_EXECUTION_TIMEOUT):
+            exec(code, env)
+    except TimeoutError as e:
+        errors.append(str(e))
     except Exception as e:
         errors.append(str(e))
 
