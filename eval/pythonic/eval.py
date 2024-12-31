@@ -2,11 +2,15 @@ from typing import Dict, Any
 from tqdm import tqdm
 from eval.pythonic.engine import import_functions, execute_python_code
 from eval.model import get_completions_batch
+import json
+import os
+
 from eval.settings import (
     PYTHONIC_DATA_PATH,
     PYTHONIC_SYSTEM_PROMPT_PATH,
     SHOW_COMPLETION_IN_EVAL,
     BATCH_SIZE,
+    PYTHONIC_RESULTS_PATH
 )
 from eval.util import (
     load_pythonic_jsonl,
@@ -51,6 +55,13 @@ async def evaluate_model_pythonic(
         )
     )
 
+    if not os.path.exists(PYTHONIC_RESULTS_PATH):
+        os.makedirs(PYTHONIC_RESULTS_PATH)
+
+    run_path = PYTHONIC_RESULTS_PATH + "/" + model_name + "_" + provider
+    if not os.path.exists(run_path):
+        os.makedirs(run_path)
+
     # Load evaluation data
     rows = load_pythonic_jsonl(data_path)
 
@@ -58,6 +69,15 @@ async def evaluate_model_pythonic(
     total = len(rows)
     correct = 0
     errors = []
+    results = []
+
+    if os.path.isfile(run_path + "/results.jsonl"):
+        with open(f"{run_path}/results.jsonl", "r") as f:
+            for line in f.readlines():
+                result_row = json.loads(line)
+                results.append(result_row)
+                correct += result_row["score"]
+        rows = rows[:len(results)]
 
     # Load system prompt
     system_prompt = load_system_prompt(PYTHONIC_SYSTEM_PROMPT_PATH)
@@ -101,10 +121,10 @@ async def evaluate_model_pythonic(
                 )
 
                 # Execute the code with mock functions
-                results = execute_python_code(code, requests[j]["functions"])
+                function_result = execute_python_code(code, requests[j]["functions"])
 
                 # Check if required functions were called
-                score = results.check_score(
+                score = function_result.check_score(
                     row.checklist.values, row.checklist.functions
                 )
 
@@ -113,12 +133,39 @@ async def evaluate_model_pythonic(
 
                 correct += score
 
+                results.append(
+                    {
+                        "code": code,
+                        "score": score,
+                        "results": function_result.model_dump_json(),
+                        "expected": row.checklist.model_dump_json(),
+                        "user_query": row.user_query,
+                        "functions": row.function_schema_python,
+                    }
+                )
+
             except Exception as e:
                 errors.append(f"Error processing row: {str(e)}")
+
+                results.append(
+                    {
+                        "code": None,
+                        "score": 0.0,
+                        "results": f"Error processing row: {str(e)}",
+                        "expected": row.checklist.model_dump_json(),
+                        "user_query": row.user_query,
+                        "functions": row.function_schema_python,
+                    }
+                )
 
     # Calculate metrics
     overall_accuracy = correct / total if total > 0 else 0
     overall_accuracy = round(overall_accuracy * 100, 2)
+
+    # Save results
+    with open(run_path + "/results.jsonl", "w") as f:
+        for result in results:
+            f.write(json.dumps(result) + "\n")
 
     return {
         "total_examples": total,

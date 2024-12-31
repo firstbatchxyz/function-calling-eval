@@ -1,29 +1,32 @@
+import argparse
 import asyncio
-
 from eval.evaluate import evaluate_model, EvaluationMode
 
-model_name = "qwen/qwen-2.5-coder-32b-instruct"
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model", default="anthropic/claude-3.5-sonnet")
+    parser.add_argument("--provider", default="openrouter")
+    parser.add_argument("--strict", action="store_true")
+    parser.add_argument("--show_completion", action="store_true", default=False)
+    parser.add_argument("--mode", choices=["json", "pythonic"], default="pythonic")
+    args = parser.parse_args()
 
-result = asyncio.run(
-    evaluate_model(
-        model_name=model_name,
-        provider="openrouter",
-        mode=EvaluationMode.pythonic,
-        strict=True,
-        show_completion=False,
+    if args.mode == "pythonic":
+        mode = EvaluationMode.pythonic
+    else:
+        mode = EvaluationMode.json
+
+    result = asyncio.run(
+        evaluate_model(
+            model_name=args.model,
+            provider=args.provider,
+            mode=mode,
+            strict=args.strict,
+            show_completion=args.show_completion,
+        )
     )
-)
 
-print(f"Pythonic: {result}")
+    print(f"{args.mode.capitalize()}:", result)
 
-result = asyncio.run(
-    evaluate_model(
-        model_name=model_name,
-        provider="openrouter",
-        mode=EvaluationMode.json,
-        strict=True,
-        show_completion=False,
-    )
-)
-
-print(f"JSON: {result}")
+if __name__ == "__main__":
+    main()

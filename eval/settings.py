@@ -10,12 +10,14 @@ SHOW_COMPLETION_IN_EVAL = False
 # Pythonic settings
 PYTHONIC_DATA_PATH = "data/function_calling_eval.jsonl"
 PYTHONIC_SYSTEM_PROMPT_PATH = "eval/pythonic/system_prompt.txt"
+PYTHONIC_RESULTS_PATH = "results/pythonic"
 FLOAT_TOLERANCE = 1e-6
 BATCH_SIZE = 16
 CODE_EXECUTION_TIMEOUT = 30  # Maximum time in seconds for code execution
 
 # Json mode settings
 JSON_SYSTEM_PROMPT_PATH = "eval/json_mode/system_prompt.txt"
+JSON_RESULTS_PATH = "results/json_mode"
 
 # Provider settings
 LM_STUDIO_URL = "http://localhost:1234/v1"
