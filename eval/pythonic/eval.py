@@ -55,12 +55,14 @@ async def evaluate_model_pythonic(
         )
     )
 
+    """
     if not os.path.exists(PYTHONIC_RESULTS_PATH):
         os.makedirs(PYTHONIC_RESULTS_PATH)
 
     run_path = PYTHONIC_RESULTS_PATH + "/" + model_name + "_" + provider
     if not os.path.exists(run_path):
         os.makedirs(run_path)
+    """
 
     # Load evaluation data
     rows = load_pythonic_jsonl(data_path)
@@ -71,6 +73,7 @@ async def evaluate_model_pythonic(
     errors = []
     results = []
 
+    """
     if os.path.isfile(run_path + "/results.jsonl"):
         with open(f"{run_path}/results.jsonl", "r") as f:
             for line in f.readlines():
@@ -78,6 +81,7 @@ async def evaluate_model_pythonic(
                 results.append(result_row)
                 correct += result_row["score"]
         rows = rows[:len(results)]
+    """
 
     # Load system prompt
     system_prompt = load_system_prompt(PYTHONIC_SYSTEM_PROMPT_PATH)
@@ -159,13 +163,14 @@ async def evaluate_model_pythonic(
                 )
 
     # Calculate metrics
+    logger.info(f"correct: {correct}")
     overall_accuracy = correct / total if total > 0 else 0
     overall_accuracy = round(overall_accuracy * 100, 2)
 
     # Save results
-    with open(run_path + "/results.jsonl", "w") as f:
-        for result in results:
-            f.write(json.dumps(result) + "\n")
+    #with open(run_path + "/results.jsonl", "w") as f:
+    #    for result in results:
+    #        f.write(json.dumps(result) + "\n")
 
     return {
         "total_examples": total,
