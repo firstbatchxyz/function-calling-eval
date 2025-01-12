@@ -6,27 +6,35 @@ from concurrent.futures import ThreadPoolExecutor, TimeoutError
 from eval.settings import CODE_EXECUTION_TIMEOUT
 from eval.schemas import FunctionResults
 
+
 # Define custom exceptions
 class NotAllowedError(Exception):
     """Raised when dangerous builtins are used in the code."""
+
     pass
+
 
 class TimeoutError(Exception):
     """Raised when code execution exceeds the timeout limit."""
+
     pass
+
 
 def import_functions(mock_functions: str) -> List[Callable]:
     """
     Import mock functions from a string containing function definitions and return them as callable functions.
     """
     namespace = {}
-    import_string = "from typing import List, Dict, Any, Union, Tuple, Callable, Optional"
+    import_string = (
+        "from typing import List, Dict, Any, Union, Tuple, Callable, Optional"
+    )
     exec(import_string, namespace)
     exec(mock_functions, namespace)
     functions = [obj for obj in namespace.values() if isinstance(obj, FunctionType)]
     if not functions:
         raise ValueError("No functions found in the provided mock functions string")
     return functions
+
 
 def execute_python_code(
     code: str,
@@ -37,9 +45,7 @@ def execute_python_code(
     """
     Execute Python code with given functions and context variables, and return the results.
     """
-    dangerous_builtins = [
-        "exec", "eval", "execfile", "compile", "exit", "input"
-    ]
+    dangerous_builtins = ["exec", "eval", "execfile", "compile", "exit", "input"]
 
     if safe:
         tree = ast.parse(code)
@@ -48,15 +54,22 @@ def execute_python_code(
                 return FunctionResults(
                     function_results={},
                     variables={},
-                    errors=[f"NotAllowedError: Usage of dangerous builtin '{node.id}' is not allowed"]
+                    errors=[
+                        f"NotAllowedError: Usage of dangerous builtin '{node.id}' is not allowed"
+                    ],
                 )
 
     # Create a copy of builtins and remove dangerous ones
     import builtins
-    filtered_builtins = {k: v for k, v in builtins.__dict__.items() if k not in dangerous_builtins}
+
+    filtered_builtins = {
+        k: v for k, v in builtins.__dict__.items() if k not in dangerous_builtins
+    }
 
     env = {"__builtins__": filtered_builtins}
-    import_string = "from typing import List, Dict, Any, Union, Tuple, Callable, Optional"
+    import_string = (
+        "from typing import List, Dict, Any, Union, Tuple, Callable, Optional"
+    )
     exec(import_string, env)
     env.update(context_variables)
 
@@ -70,7 +83,9 @@ def execute_python_code(
     tree = ast.parse(code)
     for node in ast.walk(tree):
         if isinstance(node, ast.Assign):
-            if isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Name):
+            if isinstance(node.value, ast.Call) and isinstance(
+                node.value.func, ast.Name
+            ):
                 func_name = node.value.func.id
                 var_name = node.targets[0].id
                 function_to_variable.setdefault(func_name, []).append(var_name)
@@ -83,6 +98,7 @@ def execute_python_code(
             result = func(*args, **kwargs)
             call_results.setdefault(func_name, []).append(result)
             return result
+
         return wrapper
 
     for func in functions:
@@ -99,6 +115,7 @@ def execute_python_code(
                 errors.append("Code execution exceeded timeout limit.")
             except Exception as e:
                 import traceback
+
                 errors.append(f"{type(e).__name__}: {str(e)}\n{traceback.format_exc()}")
     except Exception as e:
         errors.append(str(e))
@@ -116,7 +133,5 @@ def execute_python_code(
         function_results[func_name] = var_names
 
     return FunctionResults(
-        function_results=function_results,
-        variables=variables,
-        errors=errors
+        function_results=function_results, variables=variables, errors=errors
     )

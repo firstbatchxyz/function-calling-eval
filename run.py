@@ -2,6 +2,8 @@ import argparse
 import asyncio
 from eval.evaluate import evaluate_model, EvaluationMode
 
+
+# qwen/qwen-2.5-7b-instruct
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", default="anthropic/claude-3.5-sonnet")
@@ -27,6 +29,7 @@ def main():
     )
 
     print(f"{args.mode.capitalize()}:", result)
+
 
 if __name__ == "__main__":
     main()

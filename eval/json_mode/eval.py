@@ -8,7 +8,12 @@ from eval.json_mode.engine import (
     import_functions,
 )
 from eval.model import get_completions_batch
-from eval.settings import PYTHONIC_DATA_PATH, JSON_SYSTEM_PROMPT_PATH, BATCH_SIZE, JSON_RESULTS_PATH
+from eval.settings import (
+    PYTHONIC_DATA_PATH,
+    JSON_SYSTEM_PROMPT_PATH,
+    BATCH_SIZE,
+    JSON_RESULTS_PATH,
+)
 from eval.util import (
     load_pythonic_jsonl,
     load_system_prompt,
@@ -57,14 +62,6 @@ async def evaluate_model_json(
     correct = 0
     errors = []
     results = []
-
-    if os.path.isfile(run_path + "/results.jsonl"):
-        with open(f"{run_path}/results.jsonl", "r") as f:
-            for line in f.readlines():
-                result_row = json.loads(line)
-                results.append(result_row)
-                correct += result_row["score"]
-        rows = rows[:len(results)]
 
     # Load system prompt
     system_prompt = load_system_prompt(JSON_SYSTEM_PROMPT_PATH)
