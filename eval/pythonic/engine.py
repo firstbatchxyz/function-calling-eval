@@ -2,6 +2,7 @@ from typing import List, Callable, Dict, Any
 import ast
 from types import FunctionType
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
+import builtins
 
 from eval.settings import CODE_EXECUTION_TIMEOUT
 from eval.schemas import FunctionResults
@@ -41,35 +42,46 @@ def execute_python_code(
     functions: List[Callable] = [],
     context_variables: Dict[str, Any] = {},
     safe: bool = True,
+    excluded_builtins: List[str] = []
 ) -> FunctionResults:
     """
     Execute Python code with given functions and context variables, and return the results.
+    Args:
+        code: The Python code (in string format) to execute
+        functions: A list of functions to be imported to be used in the code. (Optional, default: [])
+        context_variables: A dictionary of variables to be added to the execution environment. (Optional, default: {})
+        safe: Whether to check for dangerous builtins and prevent execution if found. (Optional, default: True)
+        excluded_builtins: A list of builtins to be excluded from the execution environment. (Optional, default: [])
+    Returns:
+        FunctionResults: An object containing the results of the code execution.
     """
-    dangerous_builtins = ["exec", "eval", "execfile", "compile", "exit", "input"]
+    # Initialize environment with default builtins
+    env = {"__builtins__": builtins.__dict__.copy()}
 
     if safe:
+        # Define dangerous builtins
+        if not excluded_builtins:
+            dangerous_builtins = [
+                "exec", "eval", "execfile", "compile", "exit", "input"
+            ]
+        else:
+            dangerous_builtins = excluded_builtins
+
+        # Check for dangerous builtin usage
         tree = ast.parse(code)
         for node in ast.walk(tree):
             if isinstance(node, ast.Name) and node.id in dangerous_builtins:
                 return FunctionResults(
                     function_results={},
                     variables={},
-                    errors=[
-                        f"NotAllowedError: Usage of dangerous builtin '{node.id}' is not allowed"
-                    ],
+                    errors=[f"NotAllowedError: Usage of dangerous builtin '{node.id}' is not allowed"]
                 )
 
-    # Create a copy of builtins and remove dangerous ones
-    import builtins
+        # Filter out dangerous builtins from environment
+        env["__builtins__"] = {k: v for k, v in builtins.__dict__.items() if k not in dangerous_builtins}
 
-    filtered_builtins = {
-        k: v for k, v in builtins.__dict__.items() if k not in dangerous_builtins
-    }
-
-    env = {"__builtins__": filtered_builtins}
-    import_string = (
-        "from typing import List, Dict, Any, Union, Tuple, Callable, Optional"
-    )
+    # Import typing functions and add context variables
+    import_string = "from typing import List, Dict, Any, Union, Tuple, Callable, Optional"
     exec(import_string, env)
     env.update(context_variables)
 
@@ -83,22 +95,23 @@ def execute_python_code(
     tree = ast.parse(code)
     for node in ast.walk(tree):
         if isinstance(node, ast.Assign):
-            if isinstance(node.value, ast.Call) and isinstance(
-                node.value.func, ast.Name
-            ):
+            # Handle direct assignments
+            if isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Name):
                 func_name = node.value.func.id
                 var_name = node.targets[0].id
                 function_to_variable.setdefault(func_name, []).append(var_name)
+            # Handle dictionary comprehensions
+            elif isinstance(node.value, ast.DictComp):
+                for subnode in ast.walk(node.value):
+                    if isinstance(subnode, ast.Call) and isinstance(subnode.func, ast.Name):
+                        func_name = subnode.func.id
+                        var_name = node.targets[0].id
+                        function_to_variable.setdefault(func_name, []).append(var_name)
 
     # Wrap the provided functions to capture their return values
-    call_results = {}
-
     def make_wrapper(func_name, func):
         def wrapper(*args, **kwargs):
-            result = func(*args, **kwargs)
-            call_results.setdefault(func_name, []).append(result)
-            return result
-
+            return func(*args, **kwargs)
         return wrapper
 
     for func in functions:
@@ -115,7 +128,6 @@ def execute_python_code(
                 errors.append("Code execution exceeded timeout limit.")
             except Exception as e:
                 import traceback
-
                 errors.append(f"{type(e).__name__}: {str(e)}\n{traceback.format_exc()}")
     except Exception as e:
         errors.append(str(e))
@@ -128,10 +140,10 @@ def execute_python_code(
     }
 
     # Create function results mapping
-    function_results = {}
-    for func_name, var_names in function_to_variable.items():
-        function_results[func_name] = var_names
+    function_results = function_to_variable
 
     return FunctionResults(
-        function_results=function_results, variables=variables, errors=errors
+        function_results=function_results,
+        variables=variables,
+        errors=errors
     )
