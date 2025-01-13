@@ -120,6 +120,13 @@ def execute_python_code(
                         func_name = subnode.func.id
                         var_name = node.targets[0].id
                         function_to_variable.setdefault(func_name, []).append(var_name)
+        # Handle function definitions
+        elif isinstance(node, ast.FunctionDef):
+            for subnode in ast.walk(node):
+                if isinstance(subnode, ast.Call) and isinstance(subnode.func, ast.Name):
+                    func_name = subnode.func.id
+                    var_name = f"{node.name}:internal"
+                    function_to_variable.setdefault(func_name, []).append(var_name)
 
     # Wrap the provided functions to capture their return values
     def make_wrapper(func_name, func):
