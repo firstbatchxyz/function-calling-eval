@@ -12,7 +12,7 @@ PYTHONIC_DATA_PATH = "data/function_calling_eval_harder.jsonl"
 PYTHONIC_SYSTEM_PROMPT_PATH = "eval/pythonic/system_prompt.txt"
 PYTHONIC_RESULTS_PATH = "results/pythonic"
 FLOAT_TOLERANCE = 1e-6
-BATCH_SIZE = 2
+BATCH_SIZE = 8
 CODE_EXECUTION_TIMEOUT = 30  # Maximum time in seconds for code execution
 
 # Json mode settings

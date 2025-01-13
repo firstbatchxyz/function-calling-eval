@@ -5,7 +5,6 @@ from pydantic import BaseModel
 
 from eval.settings import FLOAT_TOLERANCE
 
-
 class OpenAIParameter(BaseModel):
     """OpenAI parameter schema."""
 
@@ -52,22 +51,34 @@ class FunctionResults(BaseModel):
                 return abs(value1 - value2) <= FLOAT_TOLERANCE
             return value1 == value2
 
-        # Count matching values
-        matching_values = sum(
-            1
-            for value in values_list
-            if any(
-                values_match(value, var_value) for var_value in self.variables.values()
-            )
-        )
+        # Count matching values and track missing ones
+        missing_values = []
+        matching_values = 0
+        for value in values_list:
+            if any(values_match(value, var_value) for var_value in self.variables.values()):
+                matching_values += 1
+            else:
+                missing_values.append(value)
+            
         values_score = 0.5 * (
             matching_values / len(values_list) if values_list else 1.0
         )
 
-        # Count matching functions
-        matching_functions = sum(
-            1 for function in functions_list if function in self.function_results.keys()
-        )
+        # Count matching functions and track missing ones
+        missing_functions = []
+        matching_functions = 0
+        for function in functions_list:
+            if function in self.function_results.keys():
+                matching_functions += 1
+            else:
+                missing_functions.append(function)
+                
+        # Save missing functions and values to file
+        with open('results/eval_missing.json', 'w') as f:
+            import json
+            json.dump({'missing_functions': missing_functions}, f, indent=2)
+            json.dump({'missing_values': missing_values}, f, indent=2)
+            
         functions_score = 0.5 * (
             matching_functions / len(functions_list) if functions_list else 1.0
         )
