@@ -100,6 +100,19 @@ def execute_python_code(
                 func_name = node.value.func.id
                 var_name = node.targets[0].id
                 function_to_variable.setdefault(func_name, []).append(var_name)
+            # Handle dictionary literals with function calls
+            elif isinstance(node.value, ast.Dict):
+                var_name = node.targets[0].id
+                for key, value in zip(node.value.keys, node.value.values):
+                    if isinstance(value, ast.Call) and isinstance(value.func, ast.Name):
+                        func_name = value.func.id
+                        if isinstance(key, ast.Constant):
+                            full_var_name = f"{var_name}[{repr(key.value)}]"
+                        elif isinstance(key, ast.Constant):
+                            full_var_name = f"{var_name}[{repr(key.value)}]"
+                        else:
+                            full_var_name = var_name
+                        function_to_variable.setdefault(func_name, []).append(full_var_name)
             # Handle dictionary and list comprehensions
             elif isinstance(node.value, (ast.DictComp, ast.ListComp)):
                 for subnode in ast.walk(node.value):
