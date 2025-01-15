@@ -32,6 +32,15 @@ python main.py --model "anthropic/claude-3.5-sonnet" --provider "openrouter"
 - `--show_completion`: Show model completions (default: False)
 - `--mode`: Evaluation mode, either "json" or "pythonic" (default: "pythonic")
 
+#### Providers
+
+DBAP-a supports the following providers:
+
+- `openrouter`: OpenRouter API
+- `lm_studio`: LM Studio
+- `vllm`: Local models via vLLM
+- `ollama`: Local models via Ollama
+
 ### Example
 
 ```bash
