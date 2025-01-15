@@ -21,7 +21,7 @@ pip install -r requirements.txt
 Basic usage:
 
 ```bash
-python main.py --model "anthropic/claude-3.5-sonnet" --provider "openrouter"
+python run.py --model anthropic/claude-3.5-sonnet --provider openrouter
 ```
 
 ### Command Line Arguments
@@ -45,10 +45,10 @@ DBAP-a supports the following providers:
 
 ```bash
 # Evaluate Claude 3.5 in pythonic mode
-python main.py --model "anthropic/claude-3.5-sonnet" --provider "openrouter" --mode pythonic --strict 
+python run.py --model anthropic/claude-3.5-sonnet --provider openrouter --mode pythonic --strict 
 
 # Evaluate with JSON mode and show completions
-python main.py --model "qwen/qwen-2.5-7b-instruct" --provider "openrouter" --mode json --strict  --show_completion
+python run.py --model qwen/qwen-2.5-7b-instruct --provider openrouter --mode json --strict  --show_completion
 ```
 
 ### Benchmark Structure
