@@ -1,250 +1,96 @@
-# Function Calling Evaluation
+# DPAB-α: Dria Pythonic Agent Benchmark
 
-This repository is designed for evaluating pythonic function calling abilities.
-Designed by Dria. 
+DPAB-α is a comprehensive benchmark designed to evaluate LLMs function calling capabilities through both Pythonic and JSON-based approaches. 
+This benchmark contains 100 synthetically generated and validated problems across different difficulty levels.
 
+Each task has both functions defined in Python and JSON schemas. 
+The benchmark evaluates the model's ability to generate correct function calls based on the given problem description.
 
+Pythonic function calling performance often outstrips JSON-based function calling in scenarios that require creative or multi-step solutions, reinforcing the premise that Pythonic function calling can be more natural and powerful.
 
+### Installation
 
-```python
-
-def extract_text_from_pdf_document(file_path: str) -> str:
-    """Extracts text from a PDF document at the specified file path.
-        Args:
-            file_path (str): The path to the PDF document
-
-        Returns:
-            str: The extracted text from the PDF document
-    """
-                            
-        pass
-
-def extract_text_from_pdf_document(file_path: str) -> str:
-    mock_outputs = {
-        'empty.pdf': '',
-        'large.pdf': 'This is a large document with lots of text...',
-        'error.pdf': 'Error: Unable to extract text.',
-    }
-    return mock_outputs.get(file_path, 'Default mock text from the PDF document.')
+```bash
+git clone https://github.com/firstbatchxyz/function-calling-eval.git
+cd function-calling-eval
+pip install -r requirements.txt
 ```
 
-## JSON Mode Eval
+### Usage
 
-#### Proposed format for json-mode eval data:
+Basic usage:
 
-| Prompt | Completion | Schema | SchemaJSON |
-|----------|----------|----------|----------|
-
-
-
-#### Prompt
-
- ```json
- [
-   {
-      "content":"You are a helpful assistant that answers in JSON. Here's the json schema you must adhere to:\n<schema>\n{'title': 'PortfolioPerformance', 'type': 'object', 'properties': {'capitalGains': {'title': 'Capital Gains', 'type': 'number', 'format': 'currency'}, 'interestIncome': {'title': 'Interest Income', 'type': 'number', 'format': 'currency'}, 'totalReturn': {'title': 'Total Return', 'type': 'number', 'format': 'percentage'}}, 'required': ['capitalGains', 'interestIncome', 'totalReturn']}\n</schema>\n",
-      "role":"system"
-   },
-   {
-      "content":"I am analyzing the performance of our mortgage REIT's investment portfolio and need to track key financial metrics. Specifically, I require a JSON object that captures the following data points: capital gains realized this quarter, which are $1,250,000.00, interest income generated from mortgage-backed securities, which is $375,000.00, and the total return percentage over the past year, which is 8.5%. This information will be used to update our investors and for internal performance reviews. Please provide a JSON object that includes these metrics with appropriate formatting for currency and percentages.",
-      "role":"user"
-   }]
-```  
-
-#### Completion
-```json
-{"capitalGains": 1250000.0, "interestIncome": 375000.0, "totalReturn": 8.5} 
+```bash
+python main.py --model "anthropic/claude-3.5-sonnet" --provider "openrouter"
 ```
 
+### Command Line Arguments
 
-#### Schema
-```python
-from pydantic import BaseModel, Field
+- `--model`: Model identifier (default: "anthropic/claude-3.5-sonnet")
+- `--provider`: API provider (default: "openrouter")
+- `--strict`: Enable strict evaluation mode (optional)
+- `--show_completion`: Show model completions (default: False)
+- `--mode`: Evaluation mode, either "json" or "pythonic" (default: "pythonic")
 
-class PortfolioPerformance(BaseModel):
-    capitalGains: float = Field(..., title="Capital Gains", description="Capital Gains", example=0.0)
-    interestIncome: float = Field(..., title="Interest Income", description="Interest Income", example=0.0)
-    totalReturn: float = Field(..., title="Total Return", description="Total Return as a percentage", example=0.0)
-    
-    class Config:
-        schema_extra = {
-            "example": {
-                "capitalGains": 1000.50,
-                "interestIncome": 500.25,
-                "totalReturn": 0.12,  # Represented as a percentage
-            }
-        }
-```
- 
- 
- #### SchemaJSON
- ```json
- {"title": "PortfolioPerformance", "type": "object", "properties": {"capitalGains": {"title": "Capital Gains", "type": "number", "format": "currency"}, "interestIncome": {"title": "Interest Income", "type": "number", "format": "currency"}, "totalReturn": {"title": "Total Return", "type": "number", "format": "percentage"}}, "required": ["capitalGains", "interestIncome", "totalReturn"]}
- ```
+### Example
 
+```bash
+# Evaluate Claude 3.5 in pythonic mode
+python main.py --model "anthropic/claude-3.5-sonnet" --provider "openrouter" --mode pythonic --strict 
 
- ### Evaluation Method
-
- Evaluate by deserializing completion into given python class Schema.
-
-## Pythonic Function Calling Eval
-
-#### Proposed format for pythonic function calling eval data:
-
-| Field | Description | Example |
-|-------|-------------|---------|
-| difficulty | The difficulty of the task | "easy", "hard" |
-| function_schema_json | JSON representation of available functions | {"name": "get_tweets", "parameters": {...}} |
-| function_schema_python | Python function definitions with types | def get_tweets(hashtag: str) -> list[str] |
-| mock_functions | Mock implementation returning expected output | def mock_get_tweets(): return ["tweet1"] |
-| completion | The assistant's response/code | result = get_tweets("#AI") |
-| user_query | The user's original request | "Get latest AI tweets" |
-| checklist | List of called functions and values to check for in the function results | { "functions": [get_tweets, get_fighter_record, get_sentiment], "values": [0.7999999999999999, {"name": "Islam Makhachev", "wins": 17, "losses": 1, "draws": 0}] } |
-
-#### Example Row
-
-##### Difficulty:
-easy
-
-##### Function Schema JSON:
-```json
-{
-  "functions": [
-    {
-      "name": "get_tweets",
-      "parameters": {
-        "hashtag": {"type": "string"},
-        "num_tweets": {"type": "integer"}
-      },
-      "docstring": "Get the latest tweets with a given hashtag.\n\nArgs:\n    hashtag (str): The hashtag to search for.\n    num_tweets (int): The number of tweets to return.\n\nReturns:\n    list[str]: A list of tweets.",
-    },
-    {
-      "name": "get_fighter_stats", 
-      "parameters": {
-        "fighter": {"type": "string"}
-      },
-      "docstring": "Get the stats for a given fighter, namely wins, losses and draws.\n\nArgs:\n    fighter (str): The name of the fighter.\n\nReturns:\n    dict: A dictionary containing the fighter's stats.",
-    },
-    {
-      "name": "get_sentiment",
-      "parameters": {
-        "text": {"type": "string"}
-      },
-      "docstring": "Get the sentiment of a given text.\n\nArgs:\n    text (str): The text to analyze.\n\nReturns:\n    float: The sentiment score, between 0 and 1.",
-    }
-  ]
-}
+# Evaluate with JSON mode and show completions
+python main.py --model "qwen/qwen-2.5-7b-instruct" --provider "openrouter" --mode json --strict  --show_completion
 ```
 
-##### Functions Schema Python:
-```python
-def get_tweets(hashtag: str, num_tweets: int) -> list[str]:
-    """
-    Get the latest tweets with a given hashtag.
+### Benchmark Structure
 
-    Args:
-        hashtag (str): The hashtag to search for.
-        num_tweets (int): The number of tweets to return.
+Each test case in the benchmark contains:
+- `difficulty`: Easy or hard
+- `function_schema_python`: Python function definitions
+- `function_schema_json`: JSON function schemas
+- `mock_functions`: Implementation with return values
+- `user_query`: Natural language question
+- `checklist`: Validation criteria
 
-    Returns:
-        list[str]: A list of tweets.
-    """
-    pass
+## Results
 
-def get_fighter_record(fighter: str) -> dict:
-    """
-    Get the stats for a given fighter, namely wins, losses and draws.
+Current benchmark results for various models **(strict)**:
 
-    Args:
-        fighter (str): The name of the fighter.
+| Model Name                      | Pythonic | JSON |
+|---------------------------------|----------|------|
+| **Closed Models**               |          |      |
+| Claude 3.5 Sonnet              | 87       | 45   |
+| o1-preview-2024-09-12           | 55       | 39   |
+| o1-mini-2024-09-12              | 59       | 35   |
+| gpt-4o-2024-11-20              | 60       | 30   |
+| **Open Models**                 |          |      |
+| **> 100B Parameters**           |          |      |
+| DeepSeek V3 (685B)             | 63       | 33   |
+| MiniMax-01                     | 62       | 40   |
+| Llama-3.1-405B-Instruct        | 60       | 38   |
+| **> 30B Parameters**            |          |      |
+| Qwen-2.5-Coder-32b-Instruct    | 68       | 32   |
+| Qwen-2.5-72b-instruct          | 65       | 39   |
+| Llama-3.3-70b-Instruct         | 59       | 40   |
+| QwQ-32b-Preview                | 47       | 21   |
+| **< 20B Parameters**           |          |      |
+| Dria-Agent-a-7B               | 70       | 38   |
+| Qwen2.5-Coder-7B-Instruct      | 44       | 39   |
+| Dria-Agent-a-3B               | 72       | 31   |
+| Qwen2.5-Coder-3B-Instruct      | 26       | 37   |
+| Qwen-2.5-7B-Instruct           | 47       | 34   |
+| Phi-4 (14B)                    | 55       | 35   |
 
-    Returns:
-        dict: A dictionary containing the fighter's stats.
-    """
-    pass
+For details, please refer to our [blog post](https://huggingface.co/blog/andthattoo/dpab-a).
 
-def get_sentiment(text: str) -> float:
-    """
-    Get the sentiment of a given text.
+#### Citation
 
-    Args:
-        text (str): The text to analyze.
+If you use this benchmark in your research, please cite:
 
-    Returns:
-        float: The sentiment score, between 0 and 1.
-    """
-    pass
-```
-
-##### Mock Functions:
-```python
-def get_tweets(hashtag: str, num_tweets: int) -> list[str]:
-    """
-    Get the latest tweets with a given hashtag.
-
-    Args:
-        hashtag (str): The hashtag to search for.
-        num_tweets (int): The number of tweets to return.
-
-    Returns:
-        list[str]: A list of tweets.
-    """
-    return [f"good tweet {hashtag}"] * num_tweets
-
-def get_fighter_record(fighter: str) -> dict:
-    """Get the stats for a given fighter, namely wins, losses and draws.
-
-    Args:
-        fighter (str): The name of the fighter.
-
-    Returns:
-        dict: A dictionary containing the fighter's stats.
-    """
-    return {"name": fighter, "wins": 17, "losses": 1, "draws": 0}
-
-def get_sentiment(text: str) -> float:
-    """Get the sentiment of a given text.
-
-    Args:
-        text (str): The text to analyze.
-
-    Returns:
-        float: The sentiment score, between 0 and 1.
-    """
-    return 0.8 if "good tweet" in text else 0.2
-```
-
-##### User Query:   
-What is the current sentiment about Islam Makhachev and his current record?
-
-##### Completion:
-To determine the current sentiment about Islam Makhachev and his record, we need to:
-
-1. Get the latest tweets mentioning him.
-2. Analyze the sentiment of these tweets.
-3. Retrieve his current fighting record.
-
-Let's start by getting the latest tweets with the hashtag `#IslamMakhachev` and analyzing their sentiment.
-
-```python
-tweets = get_tweets("#IslamMakhachev", 10)
-sentiment_scores = [get_sentiment(tweet) for tweet in tweets]
-average_sentiment = sum(sentiment_scores) / len(sentiment_scores) if sentiment_scores else 0
-fighter_record = get_fighter_record("Islam Makhachev")
-```
-
-##### Values List:
-```json
-{
-  "functions": ["get_tweets", "get_fighter_record", "get_sentiment"],
-  "values": [
-    0.7999999999999999,
-    {
-        "name": "Islam Makhachev",
-        "wins": 17,
-        "losses": 1,
-        "draws": 0
-    }
-  ]
+```bibtex
+@misc{Dria-Agent-a,
+      url={https://huggingface.co/blog/andthattoo/dria-agent-a},
+      title={Dria-Agent-a},
+      author={"andthattoo", "Atakan Tekparmak"}
 }
 ```
