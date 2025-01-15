@@ -101,6 +101,7 @@ async def evaluate_model_pythonic(
 
         for j, completion in enumerate(completions):
             row = batch[j]
+            code = None
             try:
                 if show_completion:
                     logger.info(f"Completion: {completion}")
@@ -141,7 +142,7 @@ async def evaluate_model_pythonic(
 
                 results.append(
                     {
-                        "code": None,
+                        "code": code,
                         "score": 0.0,
                         "results": f"Error processing row: {str(e)}",
                         "expected": row.checklist.model_dump_json(),
