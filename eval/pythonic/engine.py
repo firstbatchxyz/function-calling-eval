@@ -42,7 +42,7 @@ def execute_python_code(
     functions: List[Callable] = [],
     context_variables: Dict[str, Any] = {},
     safe: bool = True,
-    excluded_builtins: List[str] = []
+    excluded_builtins: List[str] = [],
 ) -> FunctionResults:
     """
     Execute Python code with given functions and context variables, and return the results.
@@ -62,7 +62,12 @@ def execute_python_code(
         # Define dangerous builtins
         if not excluded_builtins:
             dangerous_builtins = [
-                "exec", "eval", "execfile", "compile", "exit", "input"
+                "exec",
+                "eval",
+                "execfile",
+                "compile",
+                "exit",
+                "input",
             ]
         else:
             dangerous_builtins = excluded_builtins
@@ -74,14 +79,20 @@ def execute_python_code(
                 return FunctionResults(
                     function_results={},
                     variables={},
-                    errors=[f"NotAllowedError: Usage of dangerous builtin '{node.id}' is not allowed"]
+                    errors=[
+                        f"NotAllowedError: Usage of dangerous builtin '{node.id}' is not allowed"
+                    ],
                 )
 
         # Filter out dangerous builtins from environment
-        env["__builtins__"] = {k: v for k, v in builtins.__dict__.items() if k not in dangerous_builtins}
+        env["__builtins__"] = {
+            k: v for k, v in builtins.__dict__.items() if k not in dangerous_builtins
+        }
 
     # Import typing functions and add context variables
-    import_string = "from typing import List, Dict, Any, Union, Tuple, Callable, Optional"
+    import_string = (
+        "from typing import List, Dict, Any, Union, Tuple, Callable, Optional"
+    )
     exec(import_string, env)
     env.update(context_variables)
 
@@ -96,7 +107,9 @@ def execute_python_code(
     for node in ast.walk(tree):
         if isinstance(node, ast.Assign):
             # Handle direct assignments
-            if isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Name):
+            if isinstance(node.value, ast.Call) and isinstance(
+                node.value.func, ast.Name
+            ):
                 func_name = node.value.func.id
                 var_name = node.targets[0].id
                 function_to_variable.setdefault(func_name, []).append(var_name)
@@ -112,11 +125,15 @@ def execute_python_code(
                             full_var_name = f"{var_name}[{repr(key.value)}]"
                         else:
                             full_var_name = var_name
-                        function_to_variable.setdefault(func_name, []).append(full_var_name)
+                        function_to_variable.setdefault(func_name, []).append(
+                            full_var_name
+                        )
             # Handle dictionary and list comprehensions
             elif isinstance(node.value, (ast.DictComp, ast.ListComp)):
                 for subnode in ast.walk(node.value):
-                    if isinstance(subnode, ast.Call) and isinstance(subnode.func, ast.Name):
+                    if isinstance(subnode, ast.Call) and isinstance(
+                        subnode.func, ast.Name
+                    ):
                         func_name = subnode.func.id
                         var_name = node.targets[0].id
                         function_to_variable.setdefault(func_name, []).append(var_name)
@@ -132,6 +149,7 @@ def execute_python_code(
     def make_wrapper(func_name, func):
         def wrapper(*args, **kwargs):
             return func(*args, **kwargs)
+
         return wrapper
 
     for func in functions:
@@ -148,6 +166,7 @@ def execute_python_code(
                 errors.append("Code execution exceeded timeout limit.")
             except Exception as e:
                 import traceback
+
                 errors.append(f"{type(e).__name__}: {str(e)}\n{traceback.format_exc()}")
     except Exception as e:
         errors.append(str(e))
@@ -163,7 +182,5 @@ def execute_python_code(
     function_results = function_to_variable
 
     return FunctionResults(
-        function_results=function_results,
-        variables=variables,
-        errors=errors
+        function_results=function_results, variables=variables, errors=errors
     )
